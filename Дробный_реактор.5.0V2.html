@@ -1,0 +1,3990 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ДРОБНЫЙ РЕАКТОР 5.0 — Интерактивный тренажёр и игра</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Шрифты: Rubik (заголовки и математика) + Nunito (текст) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Rubik:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <!-- Иконки Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Rubik', 'sans-serif'],
+            sans: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            space: '#0b1020',
+            panel: '#111827',
+            card: '#172036',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --cyan: #22d3ee;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --violet: #8b5cf6;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #0b1020;
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(34, 211, 238, 0.09) 0%, transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 42%),
+        radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.07) 0%, transparent 45%);
+      background-attachment: fixed;
+      color: #f1f5f9;
+      font-family: 'Nunito', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Стеклянные панели с неоновой кромкой */
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .glass-card {
+      background: linear-gradient(160deg, rgba(30, 41, 59, 0.72), rgba(15, 23, 42, 0.88));
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Игровые кнопки с объёмом и свечением */
+    .btn-game {
+      position: relative;
+      transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, filter 0.2s ease;
+      font-family: 'Rubik', sans-serif;
+      user-select: none;
+    }
+    .btn-game:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+    .btn-game:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+    }
+    .btn-game:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-cyan {
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+      box-shadow: 0 4px 0 #1e3a8a, 0 8px 20px rgba(6, 182, 212, 0.35);
+    }
+    .btn-emerald {
+      background: linear-gradient(135deg, #10b981, #059669);
+      box-shadow: 0 4px 0 #065f46, 0 8px 20px rgba(16, 185, 129, 0.35);
+    }
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      box-shadow: 0 4px 0 #14532d, 0 8px 20px rgba(34, 197, 94, 0.35);
+    }
+    .btn-telegram {
+      background: linear-gradient(135deg, #38bdf8, #0284c7);
+      box-shadow: 0 4px 0 #075985, 0 8px 20px rgba(56, 189, 248, 0.35);
+    }
+    .btn-amber {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      box-shadow: 0 4px 0 #9a3412, 0 8px 20px rgba(245, 158, 11, 0.35);
+    }
+    .btn-rose {
+      background: linear-gradient(135deg, #f43f5e, #be123c);
+      box-shadow: 0 4px 0 #881337, 0 8px 20px rgba(244, 63, 94, 0.35);
+    }
+    .btn-violet {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      box-shadow: 0 4px 0 #4c1d95, 0 8px 20px rgba(139, 92, 246, 0.35);
+    }
+    .btn-slate {
+      background: linear-gradient(135deg, #334155, #1e293b);
+      box-shadow: 0 4px 0 #0f172a, 0 6px 14px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+    }
+
+    /* Красивые двухэтажные математические дроби */
+    .math-expr {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.32em;
+      font-family: 'Rubik', sans-serif;
+      font-weight: 700;
+      line-height: 1;
+      vertical-align: middle;
+    }
+    .math-mixed {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.14em;
+    }
+    .math-whole {
+      font-size: 1.15em;
+    }
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      line-height: 1.05;
+      margin: 0 0.05em;
+    }
+    .math-num {
+      padding: 0 0.24em 0.1em 0.24em;
+      border-bottom: 2.5px solid currentColor;
+      text-align: center;
+      font-size: 0.86em;
+      min-width: 1.25em;
+    }
+    .math-den {
+      padding: 0.12em 0.24em 0 0.24em;
+      text-align: center;
+      font-size: 0.86em;
+      min-width: 1.25em;
+    }
+    .math-op {
+      color: #94a3b8;
+      margin: 0 0.08em;
+    }
+
+    /* Интерактивное поле ввода дроби */
+    .frac-input-box {
+      background: rgba(15, 23, 42, 0.92);
+      border: 2px solid rgba(148, 163, 184, 0.35);
+      color: #f8fafc;
+      font-family: 'Rubik', sans-serif;
+      font-weight: 800;
+      text-align: center;
+      border-radius: 0.75rem;
+      outline: none;
+      transition: all 0.18s ease;
+      -moz-appearance: textfield;
+    }
+    .frac-input-box::-webkit-outer-spin-button,
+    .frac-input-box::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .frac-input-box:focus,
+    .frac-input-box.active-field {
+      border-color: #22d3ee;
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.28), 0 0 18px rgba(34, 211, 238, 0.35);
+      background: rgba(14, 116, 144, 0.18);
+    }
+    .frac-input-box:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    /* Текстовые поля профиля */
+    .text-input-box {
+      background: rgba(15, 23, 42, 0.92);
+      border: 2px solid rgba(148, 163, 184, 0.3);
+      color: #f8fafc;
+      border-radius: 0.85rem;
+      outline: none;
+      transition: all 0.18s ease;
+    }
+    .text-input-box:focus {
+      border-color: #22d3ee;
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.22);
+    }
+    .text-input-box.input-error {
+      border-color: #f43f5e;
+      box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.28);
+    }
+
+    /* Интерактивные SVG-элементы лаборатории */
+    .svg-unit {
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease, filter 0.25s ease;
+    }
+    .svg-unit.clickable {
+      cursor: pointer;
+    }
+    .svg-unit.clickable:hover {
+      transform: scale(1.06) translateY(-4px);
+      filter: drop-shadow(0 0 16px rgba(34, 211, 238, 0.65));
+    }
+    .svg-unit.removed {
+      opacity: 0.18;
+      transform: scale(0.86);
+      filter: grayscale(0.85);
+    }
+
+    .svg-slice {
+      transition: transform 0.2s ease, opacity 0.25s ease, filter 0.2s ease;
+      transform-origin: center;
+    }
+    .svg-slice.slice-clickable {
+      cursor: pointer;
+    }
+    .svg-slice.slice-clickable:hover {
+      filter: brightness(1.22) drop-shadow(0 0 8px rgba(244, 63, 94, 0.75));
+    }
+    .svg-slice.slice-removed {
+      opacity: 0.16;
+      filter: grayscale(0.9);
+    }
+
+    /* Анимации */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-9px); }
+    }
+    @keyframes shakeScreen {
+      0%, 100% { transform: translate(0, 0); }
+      15% { transform: translate(-7px, 4px); }
+      30% { transform: translate(7px, -4px); }
+      45% { transform: translate(-5px, -3px); }
+      60% { transform: translate(5px, 3px); }
+      75% { transform: translate(-3px, 1px); }
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.82); opacity: 0; }
+      70% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes floatDamage {
+      0% { transform: translate(-50%, 0) scale(0.7); opacity: 0; }
+      20% { transform: translate(-50%, -14px) scale(1.18); opacity: 1; }
+      100% { transform: translate(-50%, -68px) scale(0.95); opacity: 0; }
+    }
+    @keyframes beamShoot {
+      0% { transform: scaleX(0); opacity: 1; }
+      35% { transform: scaleX(1); opacity: 1; }
+      100% { transform: scaleX(1); opacity: 0; }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 12px rgba(34, 211, 238, 0.3); }
+      50% { box-shadow: 0 0 26px rgba(34, 211, 238, 0.75); }
+    }
+    @keyframes sliceFlash {
+      0% { transform: scale(0.92); filter: brightness(2.2) drop-shadow(0 0 24px #22d3ee); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+
+    .animate-float { animation: floatSlow 3.4s ease-in-out infinite; }
+    .animate-shake { animation: shakeScreen 0.42s ease-in-out; }
+    .animate-pop { animation: popIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .animate-slice-flash { animation: sliceFlash 0.45s ease-out; }
+    .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+    .damage-float {
+      position: absolute;
+      pointer-events: none;
+      font-family: 'Rubik', sans-serif;
+      font-weight: 900;
+      animation: floatDamage 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      z-index: 40;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Слой частиц поверх всего экрана */
+    #particlesCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 90;
+    }
+
+    /* Тонкий скроллбар */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0b1020; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+  <!-- Глобальный холст для частиц, искр и конфетти -->
+  <canvas id="particlesCanvas"></canvas>
+
+  <!-- Контейнер всплывающих уведомлений (XP, достижения, события) -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-[95] flex flex-col gap-2.5 max-w-xs sm:max-w-sm pointer-events-none"></div>
+
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ И СТАТУСА -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-cyan-500/20">
+    <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- Логотип -->
+        <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('lab')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 shrink-0">
+            <i class="fa-solid fa-atom text-white text-xl animate-spin" style="animation-duration: 14s;"></i>
+          </div>
+          <div>
+            <div class="font-display font-extrabold text-base sm:text-lg tracking-tight leading-none text-white">
+              ДРОБНЫЙ <span class="text-cyan-400">РЕАКТОР</span> <span class="text-amber-400 text-xs align-top">5.0</span>
+            </div>
+            <div class="text-[11px] text-slate-400 font-semibold hidden sm:block">Вычитание дробей из натурального числа · 5 класс</div>
+          </div>
+        </div>
+
+        <!-- Индикаторы прогресса (Ранг, XP, Комбо) -->
+        <div class="flex items-center gap-2 sm:gap-3 flex-1 justify-end sm:justify-center max-w-md">
+          <!-- Бейдж ранга и XP -->
+          <div class="flex items-center gap-2 bg-slate-900/80 border border-slate-700/70 rounded-xl px-2.5 py-1.5 flex-1 max-w-[230px]">
+            <div id="rankIcon" class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-950 font-bold text-xs shrink-0 shadow">
+              <i class="fa-solid fa-medal"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-1 text-[11px] font-bold leading-none mb-1">
+                <span id="rankTitle" class="text-amber-300 truncate">Новичок</span>
+                <span id="xpLabel" class="text-cyan-300 shrink-0">0 XP</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div id="xpProgressBar" class="h-full bg-gradient-to-r from-cyan-400 to-violet-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Комбо -->
+          <div id="headerComboBadge" class="hidden sm:flex items-center gap-1.5 bg-slate-900/80 border border-amber-500/30 rounded-xl px-2.5 py-1.5">
+            <i class="fa-solid fa-fire text-amber-400 text-sm"></i>
+            <span class="text-xs font-bold text-slate-300">Комбо:</span>
+            <span id="headerComboVal" class="font-display font-extrabold text-sm text-amber-400">x1</span>
+          </div>
+        </div>
+
+        <!-- Переключатель скина моделей + Звук -->
+        <div class="flex items-center gap-1.5">
+          <div class="flex items-center bg-slate-900/90 border border-slate-700/70 rounded-xl p-1 gap-0.5" title="Визуальный стиль моделей">
+            <button onclick="setSkin('pizza')" data-skin-btn="pizza" class="skin-btn px-2 py-1 rounded-lg text-sm transition-all" title="Пицца">🍕</button>
+            <button onclick="setSkin('core')" data-skin-btn="core" class="skin-btn px-2 py-1 rounded-lg text-sm transition-all" title="Энергоядра">⚡</button>
+            <button onclick="setSkin('choco')" data-skin-btn="choco" class="skin-btn px-2 py-1 rounded-lg text-sm transition-all" title="Шоколадные плитки">🍫</button>
+          </div>
+          <button id="soundToggleBtn" onclick="toggleSound()" class="w-9 h-9 rounded-xl bg-slate-900/90 border border-slate-700/70 flex items-center justify-center text-cyan-400 hover:bg-slate-800 transition-colors" title="Звуковые эффекты">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 главные вкладки навигации -->
+      <nav class="grid grid-cols-4 gap-1.5 sm:gap-2 mt-2.5 pt-2 border-t border-slate-800/80">
+        <button onclick="switchTab('lab')" data-tab="lab" class="nav-tab flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm transition-all">
+          <i class="fa-solid fa-flask-vial"></i>
+          <span class="truncate">Лаборатория</span>
+        </button>
+        <button onclick="switchTab('campaign')" data-tab="campaign" class="nav-tab flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm transition-all">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span class="truncate">Кампания</span>
+        </button>
+        <button onclick="switchTab('blitz')" data-tab="blitz" class="nav-tab flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm transition-all">
+          <i class="fa-solid fa-bolt"></i>
+          <span class="truncate">Блиц 60с</span>
+        </button>
+        <button onclick="switchTab('profile')" data-tab="profile" class="nav-tab flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm transition-all relative">
+          <i class="fa-solid fa-trophy"></i>
+          <span class="truncate">Профиль</span>
+          <span id="mistakesNavDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ОСНОВНОЙ КОНТЕНТ -->
+  <main id="appRoot" class="max-w-7xl mx-auto px-3 sm:px-5 py-5 pb-14">
+
+    <!-- ===================================================================
+         РАЗДЕЛ 1: ИНТЕРАКТИВНАЯ ЛАБОРАТОРИЯ («РАЗРЕЖЬ И ПОЙМИ»)
+         =================================================================== -->
+    <section id="tab-lab" class="tab-section space-y-5">
+      <!-- Верхняя панель режимов Лаборатории -->
+      <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">ИНТЕРАКТИВНЫЙ УРОК</span>
+            <span class="text-xs text-slate-400 font-semibold">Трогай, режь и считай руками</span>
+          </div>
+          <h1 class="font-display font-extrabold text-xl sm:text-2xl text-white mt-1">
+            Лаборатория «Разрежь и пойми»
+          </h1>
+        </div>
+
+        <!-- Переключатель: Обучающие миссии / Свободная песочница -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="inline-flex bg-slate-900/90 p-1 rounded-xl border border-slate-700/80">
+            <button id="labModeGuidedBtn" onclick="setLabMode('guided')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-display font-bold transition-all">
+              <i class="fa-solid fa-graduation-cap mr-1.5"></i>Обучающие миссии
+            </button>
+            <button id="labModeSandboxBtn" onclick="setLabMode('sandbox')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-display font-bold transition-all">
+              <i class="fa-solid fa-sliders mr-1.5"></i>Свободная песочница
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Панель выбора Миссии (в режиме Обучения) -->
+      <div id="labGuidedControls" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <button onclick="selectGuidedMission(0)" data-mission="0" class="mission-pill glass-card rounded-2xl p-3.5 text-left transition-all hover:border-cyan-400/60">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-400">Миссия 1 · Основа</span>
+            <span class="mission-check text-emerald-400 hidden"><i class="fa-solid fa-circle-check"></i></span>
+          </div>
+          <div class="font-display font-bold text-base text-white mt-1">Вычитание из единицы</div>
+          <div class="text-xs text-slate-400 mt-0.5">Пример: 1 − 3/8 (разрежь 1 на 8/8)</div>
+        </button>
+
+        <button onclick="selectGuidedMission(1)" data-mission="1" class="mission-pill glass-card rounded-2xl p-3.5 text-left transition-all hover:border-cyan-400/60">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400">Миссия 2 · Заём</span>
+            <span class="mission-check text-emerald-400 hidden"><i class="fa-solid fa-circle-check"></i></span>
+          </div>
+          <div class="font-display font-bold text-base text-white mt-1">Займи у целого числа</div>
+          <div class="text-xs text-slate-400 mt-0.5">Пример: 4 − 2/5 (возьми 1 от 4)</div>
+        </button>
+
+        <button onclick="selectGuidedMission(2)" data-mission="2" class="mission-pill glass-card rounded-2xl p-3.5 text-left transition-all hover:border-cyan-400/60">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-violet-400">Миссия 3 · Мастер</span>
+            <span class="mission-check text-emerald-400 hidden"><i class="fa-solid fa-circle-check"></i></span>
+          </div>
+          <div class="font-display font-bold text-base text-white mt-1">Вычитаем смешанное число</div>
+          <div class="text-xs text-slate-400 mt-0.5">Пример: 5 − 2 3/6 (целые + доли)</div>
+        </button>
+      </div>
+
+      <!-- Панель конструктора примера (в режиме Песочницы) -->
+      <div id="labSandboxControls" class="hidden glass-panel rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="text-sm font-bold text-cyan-300">
+            <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>Настрой любой свой пример:
+          </div>
+          <button onclick="randomizeSandbox()" class="btn-game btn-violet px-4 py-2 rounded-xl text-xs sm:text-sm text-white font-bold">
+            <i class="fa-solid fa-dice mr-1.5"></i>Случайный пример
+          </button>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <!-- N -->
+          <div class="bg-slate-900/80 border border-slate-700/70 rounded-xl p-3">
+            <div class="flex justify-between text-xs font-bold mb-1.5">
+              <span class="text-slate-300">Целое N (1–8)</span>
+              <span id="sbValN" class="text-cyan-400 font-display text-sm">4</span>
+            </div>
+            <input id="sbRangeN" type="range" min="1" max="8" value="4" oninput="onSandboxSlider()" class="w-full accent-cyan-400 cursor-pointer">
+          </div>
+          <!-- M -->
+          <div class="bg-slate-900/80 border border-slate-700/70 rounded-xl p-3">
+            <div class="flex justify-between text-xs font-bold mb-1.5">
+              <span class="text-slate-300">Вычесть целых M</span>
+              <span id="sbValM" class="text-violet-400 font-display text-sm">0</span>
+            </div>
+            <input id="sbRangeM" type="range" min="0" max="3" value="0" oninput="onSandboxSlider()" class="w-full accent-violet-400 cursor-pointer">
+          </div>
+          <!-- a -->
+          <div class="bg-slate-900/80 border border-slate-700/70 rounded-xl p-3">
+            <div class="flex justify-between text-xs font-bold mb-1.5">
+              <span class="text-slate-300">Числитель a</span>
+              <span id="sbValA" class="text-rose-400 font-display text-sm">3</span>
+            </div>
+            <input id="sbRangeA" type="range" min="1" max="7" value="3" oninput="onSandboxSlider()" class="w-full accent-rose-400 cursor-pointer">
+          </div>
+          <!-- b -->
+          <div class="bg-slate-900/80 border border-slate-700/70 rounded-xl p-3">
+            <div class="flex justify-between text-xs font-bold mb-1.5">
+              <span class="text-slate-300">Знаменатель b (2–12)</span>
+              <span id="sbValB" class="text-amber-400 font-display text-sm">8</span>
+            </div>
+            <input id="sbRangeB" type="range" min="2" max="12" value="8" oninput="onSandboxSlider()" class="w-full accent-amber-400 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- ОСНОВНАЯ СЦЕНА ЛАБОРАТОРИИ -->
+      <div class="glass-panel rounded-3xl p-4 sm:p-6 space-y-5 relative overflow-hidden">
+        <!-- Пошаговый трекер (3 шага) + кнопки действий -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div id="stepBadge1" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-display font-bold border transition-all">1. Разрежь целое</div>
+            <i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>
+            <div id="stepBadge2" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-display font-bold border transition-all">2. Убери вычитаемое</div>
+            <i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>
+            <div id="stepBadge3" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-display font-bold border transition-all">3. Запиши ответ</div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="labAutoAnimBtn" onclick="runLabAutoAnimation()" class="btn-game btn-amber px-3.5 py-2 rounded-xl text-xs sm:text-sm text-white font-bold">
+              <i class="fa-solid fa-play mr-1.5"></i>Авто-анимация решения
+            </button>
+            <button onclick="resetLabWorkspace()" class="btn-game btn-slate px-3.5 py-2 rounded-xl text-xs sm:text-sm text-slate-200 font-bold" title="Начать пример заново">
+              <i class="fa-solid fa-rotate-left mr-1"></i>Сброс
+            </button>
+          </div>
+        </div>
+
+        <!-- Живая динамическая формула -->
+        <div class="bg-slate-950/75 border border-cyan-500/25 rounded-2xl p-4 sm:p-5 text-center">
+          <div id="labLiveFormula" class="text-2xl sm:text-4xl text-white flex flex-wrap items-center justify-center gap-x-3 gap-y-2"></div>
+          <div id="labInstructionBanner" class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/15 border border-cyan-400/35 text-cyan-200 text-sm sm:text-base font-bold"></div>
+        </div>
+
+        <!-- Счётчики прогресса на шаге 2 -->
+        <div id="labRemoveCounters" class="hidden flex flex-wrap items-center justify-center gap-3">
+          <div id="labCounterWholes" class="hidden px-4 py-2 rounded-xl bg-violet-500/15 border border-violet-400/40 text-violet-200 font-bold text-sm"></div>
+          <div id="labCounterSlices" class="px-4 py-2 rounded-xl bg-rose-500/15 border border-rose-400/40 text-rose-200 font-bold text-sm"></div>
+        </div>
+
+        <!-- ИНТЕРАКТИВНАЯ ВИЗУАЛЬНАЯ АРЕНА (SVG-фигуры) -->
+        <div id="labVisualArena" class="min-h-[210px] sm:min-h-[240px] flex flex-wrap items-center justify-center gap-4 sm:gap-6 py-4 px-2 bg-slate-900/50 rounded-2xl border border-slate-800/90"></div>
+
+        <!-- Блок ввода финального ответа (активируется на Шаге 3) -->
+        <div id="labAnswerPanel" class="hidden animate-pop bg-slate-900/90 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5">
+          <div class="flex flex-col md:flex-row items-center justify-center gap-5">
+            <div class="text-center md:text-left">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-400">Шаг 3 · Посчитай остаток</div>
+              <div class="text-base sm:text-lg font-bold text-white mt-0.5">Сколько всего осталось на экране?</div>
+              <div class="text-xs text-slate-400 mt-0.5">Если целых 0 — оставь левое поле пустым или впиши 0</div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div id="labFractionInputMount"></div>
+              <button id="labCheckBtn" onclick="checkLabAnswer()" class="btn-game btn-emerald px-5 py-3.5 rounded-xl text-white font-bold text-sm sm:text-base">
+                <i class="fa-solid fa-check mr-1.5"></i>Проверить
+              </button>
+              <button id="labNextBtn" onclick="goToNextLabExample()" class="hidden btn-game btn-cyan px-5 py-3.5 rounded-xl text-white font-bold text-sm sm:text-base">
+                Дальше <i class="fa-solid fa-arrow-right ml-1.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Обратная связь в Лаборатории -->
+          <div id="labFeedbackBox" class="hidden mt-4 rounded-xl p-3.5 text-sm sm:text-base font-bold"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         РАЗДЕЛ 2: КАМПАНИЯ («ПУТЬ МАСТЕРА» — 5 УРОВНЕЙ + БОСС)
+         =================================================================== -->
+    <section id="tab-campaign" class="tab-section hidden space-y-5">
+      <!-- Экран карты уровней -->
+      <div id="campaignMapView" class="space-y-5">
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">СЮЖЕТНЫЙ РЕЖИМ</span>
+            <h1 class="font-display font-extrabold text-xl sm:text-2xl text-white mt-1">Кампания «Путь мастера»</h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Пройди 4 сектора реактора, собери звёзды и сразись с Дробным Титаном!</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="unlockAllLevelsToggle()" id="unlockAllBtn" class="btn-game btn-slate px-3.5 py-2 rounded-xl text-xs font-bold text-slate-200">
+              <i class="fa-solid fa-key mr-1.5 text-amber-400"></i>Открыть все уровни
+            </button>
+          </div>
+        </div>
+
+        <!-- Сетка 5 уровней -->
+        <div id="campaignLevelsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- Экран прохождения уровня (Уровни 1–4) -->
+      <div id="campaignPlayView" class="hidden space-y-4">
+        <div class="glass-panel rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <button onclick="exitCampaignLevel()" class="btn-game btn-slate px-3 py-2 rounded-xl text-xs sm:text-sm text-slate-200 font-bold">
+              <i class="fa-solid fa-arrow-left mr-1"></i>Карта
+            </button>
+            <div>
+              <div id="lvlHeaderTitle" class="font-display font-extrabold text-base sm:text-lg text-white">Уровень 1</div>
+              <div id="lvlHeaderSub" class="text-xs text-slate-400">Задача 1 из 5</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/35 text-amber-300 font-display font-bold text-xs sm:text-sm">
+              <i class="fa-solid fa-fire mr-1"></i>Серия: <span id="lvlStreakVal">0</span>
+            </div>
+            <button id="lvlXrayBtn" onclick="toggleCampaignXray()" class="btn-game btn-violet px-3.5 py-2 rounded-xl text-xs sm:text-sm text-white font-bold">
+              <i class="fa-solid fa-eye mr-1.5"></i>Рентген (<span id="lvlXrayCount">3</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Полоса прогресса уровня -->
+        <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+          <div id="lvlProgressBar" class="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <!-- Карточка задачи -->
+        <div class="glass-panel rounded-3xl p-5 sm:p-7 max-w-3xl mx-auto space-y-5">
+          <div id="lvlTaskBadge" class="text-center">
+            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">ВЫЧИСЛИ</span>
+          </div>
+
+          <!-- Само выражение -->
+          <div id="lvlProblemDisplay" class="text-4xl sm:text-6xl text-white text-center py-2"></div>
+
+          <!-- Встроенная Рентген-подсказка (SVG) -->
+          <div id="lvlXrayBox" class="hidden animate-pop bg-slate-950/80 border border-violet-500/40 rounded-2xl p-4">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-violet-300 mb-2 text-center">
+              <i class="fa-solid fa-microscope mr-1"></i>Рентген-схема: заняли 1 целое и разрезали
+            </div>
+            <div id="lvlXrayContent" class="flex flex-wrap items-center justify-center gap-4"></div>
+          </div>
+
+          <!-- Ввод ответа + Кнопка -->
+          <div class="flex flex-col items-center gap-4">
+            <div class="flex flex-wrap items-center justify-center gap-4">
+              <span class="font-display font-extrabold text-3xl text-slate-400">=</span>
+              <div id="lvlFractionInputMount"></div>
+              <button id="lvlSubmitBtn" onclick="submitCampaignAnswer()" class="btn-game btn-emerald px-6 py-4 rounded-2xl text-white font-bold text-base">
+                <i class="fa-solid fa-bolt mr-1.5"></i>Ответить
+              </button>
+              <button id="lvlNextBtn" onclick="nextCampaignTask()" class="hidden btn-game btn-cyan px-6 py-4 rounded-2xl text-white font-bold text-base">
+                Дальше <i class="fa-solid fa-arrow-right ml-1.5"></i>
+              </button>
+            </div>
+
+            <!-- Обратная связь + Умная диагностика ошибок -->
+            <div id="lvlFeedbackBox" class="hidden w-full rounded-2xl p-4 text-sm sm:text-base font-bold animate-pop"></div>
+
+            <!-- Экранная цифровая клавиатура -->
+            <div id="lvlNumpadMount" class="w-full max-w-sm pt-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Экран БОСС-БАТТЛА (Уровень 5: ДРОБНЫЙ ТИТАН) -->
+      <div id="campaignBossView" class="hidden space-y-4">
+        <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 border-rose-500/35">
+          <div class="flex items-center gap-3">
+            <button onclick="exitCampaignLevel()" class="btn-game btn-slate px-3 py-2 rounded-xl text-xs sm:text-sm text-slate-200 font-bold">
+              <i class="fa-solid fa-arrow-left mr-1"></i>Отступить
+            </button>
+            <div>
+              <div class="font-display font-extrabold text-base sm:text-lg text-rose-400 flex items-center gap-2">
+                <i class="fa-solid fa-skull"></i> БОСС: ДРОБНЫЙ ТИТАН
+              </div>
+              <div class="text-xs text-slate-400">Решай без ошибок — наноси критический урон комбо-лучами!</div>
+            </div>
+          </div>
+
+          <!-- Щиты игрока и комбо -->
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 bg-slate-900/90 border border-cyan-500/30 px-3 py-1.5 rounded-xl">
+              <span class="text-xs font-bold text-slate-400 mr-1">Щиты:</span>
+              <div id="bossPlayerShields" class="flex items-center gap-1 text-lg"></div>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 font-display font-extrabold text-sm">
+              <i class="fa-solid fa-fire mr-1"></i><span id="bossComboBadge">x1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Арена Босса -->
+        <div id="bossArenaContainer" class="glass-panel rounded-3xl p-4 sm:p-6 relative overflow-hidden border-rose-500/30">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+            <!-- Левая часть: Игрок + Задача -->
+            <div class="lg:col-span-7 space-y-4 z-10">
+              <div class="bg-slate-950/85 border border-cyan-500/30 rounded-2xl p-4 sm:p-5 text-center">
+                <div class="text-xs font-extrabold uppercase tracking-wider text-cyan-400 mb-1">Энергетический расчёт атаки</div>
+                <div id="bossProblemDisplay" class="text-3xl sm:text-5xl text-white py-2"></div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-center gap-3">
+                <span class="font-display font-extrabold text-2xl text-slate-400">=</span>
+                <div id="bossFractionInputMount"></div>
+                <button id="bossFireBtn" onclick="submitBossAnswer()" class="btn-game btn-rose px-5 py-3.5 rounded-2xl text-white font-bold text-sm sm:text-base">
+                  <i class="fa-solid fa-crosshairs mr-1.5"></i>ОГОНЬ!
+                </button>
+              </div>
+
+              <div id="bossFeedbackBox" class="hidden rounded-2xl p-3.5 text-sm font-bold animate-pop"></div>
+
+              <!-- Клавиатура в бою -->
+              <div id="bossNumpadMount" class="max-w-sm mx-auto"></div>
+            </div>
+
+            <!-- Правая часть: Сам Босс Дробный Титан -->
+            <div class="lg:col-span-5 flex flex-col items-center justify-center relative py-2">
+              <!-- Полоса HP Босса -->
+              <div class="w-full max-w-xs mb-3">
+                <div class="flex justify-between text-xs font-display font-extrabold mb-1">
+                  <span class="text-rose-400">ДРОБНЫЙ ТИТАН</span>
+                  <span id="bossHpText" class="text-white">100 / 100 HP</span>
+                </div>
+                <div class="w-full h-4 bg-slate-900 rounded-full overflow-hidden border border-rose-500/40 p-0.5">
+                  <div id="bossHpBar" class="h-full bg-gradient-to-r from-rose-600 via-orange-500 to-amber-400 rounded-full transition-all duration-500" style="width: 100%"></div>
+                </div>
+              </div>
+
+              <!-- Облачко реплики Босса -->
+              <div id="bossQuoteBubble" class="bg-slate-900/95 border border-rose-500/40 rounded-2xl px-4 py-2 text-xs sm:text-sm font-bold text-rose-200 text-center mb-2 max-w-xs shadow-lg">
+                «Ха-ха! Пятиклассник, ты никогда не займёшь у меня единицу!»
+              </div>
+
+              <!-- SVG Анимированный Босс -->
+              <div id="bossVisualBox" class="relative w-52 h-52 sm:w-60 sm:h-60 flex items-center justify-center">
+                <!-- Лазерный луч при попадании -->
+                <div id="bossLaserBeam" class="hidden absolute -left-32 top-1/2 -translate-y-1/2 w-56 h-4 rounded-full bg-gradient-to-r from-cyan-400 via-white to-emerald-400 shadow-[0_0_25px_#22d3ee] origin-left z-30"></div>
+                <svg id="bossTitanSvg" viewBox="0 0 240 240" class="w-full h-full animate-float drop-shadow-[0_0_22px_rgba(244,63,94,0.45)]">
+                  <defs>
+                    <linearGradient id="titanBody" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#312e81"/>
+                      <stop offset="50%" stop-color="#1e1b4b"/>
+                      <stop offset="100%" stop-color="#0f172a"/>
+                    </linearGradient>
+                    <linearGradient id="titanArmor" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#f43f5e"/>
+                      <stop offset="100%" stop-color="#9f1239"/>
+                    </linearGradient>
+                    <radialGradient id="titanCore" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#fef08a"/>
+                      <stop offset="45%" stop-color="#f59e0b"/>
+                      <stop offset="100%" stop-color="#e11d48"/>
+                    </radialGradient>
+                  </defs>
+                  <ellipse cx="120" cy="212" rx="64" ry="12" fill="rgba(244,63,94,0.22)"/>
+                  <polygon points="22,95 62,72 56,142 26,132" fill="url(#titanArmor)" stroke="#fda4af" stroke-width="2"/>
+                  <polygon points="218,95 178,72 184,142 214,132" fill="url(#titanArmor)" stroke="#fda4af" stroke-width="2"/>
+                  <polygon points="75,58 60,18 96,46" fill="#f59e0b" stroke="#fde68a" stroke-width="2"/>
+                  <polygon points="165,58 180,18 144,46" fill="#f59e0b" stroke="#fde68a" stroke-width="2"/>
+                  <polygon points="104,44 120,12 136,44" fill="#f43f5e" stroke="#fda4af" stroke-width="2"/>
+                  <path d="M68,62 L172,62 L188,125 L164,188 L76,188 L52,125 Z" fill="url(#titanBody)" stroke="#818cf8" stroke-width="3"/>
+                  <rect x="74" y="84" width="92" height="34" rx="10" fill="#090d1a" stroke="#f43f5e" stroke-width="2.5"/>
+                  <g id="bossEyes">
+                    <polygon points="86,94 112,102 88,110" fill="#fb7185"/>
+                    <polygon points="154,94 128,102 152,110" fill="#fb7185"/>
+                  </g>
+                  <circle cx="120" cy="150" r="24" fill="url(#titanCore)" stroke="#fef08a" stroke-width="2.5"/>
+                  <line x1="106" y1="150" x2="134" y2="150" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+                  <circle cx="120" cy="140" r="4" fill="#0f172a"/>
+                  <circle cx="120" cy="160" r="4" fill="#0f172a"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Экран результатов уровня / Босса -->
+      <div id="campaignResultView" class="hidden glass-panel rounded-3xl p-6 sm:p-8 max-w-xl mx-auto text-center space-y-5 animate-pop">
+        <div id="resIconBox" class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-4xl text-slate-950 shadow-xl"></div>
+        <h2 id="resTitle" class="font-display font-extrabold text-2xl sm:text-3xl text-white">Уровень пройден!</h2>
+        <div id="resStarsRow" class="flex items-center justify-center gap-3 text-4xl"></div>
+        <p id="resSubtitle" class="text-slate-300 text-sm sm:text-base font-semibold"></p>
+        <div class="grid grid-cols-3 gap-3 bg-slate-900/80 rounded-2xl p-4 border border-slate-800">
+          <div>
+            <div class="text-xs text-slate-400 font-bold">Точность</div>
+            <div id="resAccVal" class="font-display font-extrabold text-xl text-cyan-400">100%</div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-bold">Получено XP</div>
+            <div id="resXpVal" class="font-display font-extrabold text-xl text-emerald-400">+120</div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-bold">Макс. комбо</div>
+            <div id="resComboVal" class="font-display font-extrabold text-xl text-amber-400">x5</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <button onclick="exitCampaignLevel()" class="btn-game btn-slate px-4 py-3 rounded-xl text-white font-bold text-sm">
+            <i class="fa-solid fa-map mr-1.5"></i>Карта
+          </button>
+          <button id="resReplayBtn" onclick="replayCurrentLevel()" class="btn-game btn-amber px-4 py-3 rounded-xl text-white font-bold text-sm">
+            <i class="fa-solid fa-rotate-right mr-1.5"></i>Ещё раз
+          </button>
+          <button id="resNextLevelBtn" onclick="startNextUnlockedLevel()" class="btn-game btn-emerald px-5 py-3 rounded-xl text-white font-bold text-sm">
+            Следующий <i class="fa-solid fa-arrow-right ml-1.5"></i>
+          </button>
+          <button onclick="openReportSection()" class="btn-game btn-violet px-4 py-3 rounded-xl text-white font-bold text-sm">
+            <i class="fa-solid fa-paper-plane mr-1.5"></i>Отправить учителю
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         РАЗДЕЛ 3: БЛИЦ-АРКАДА («РЕАКТОР НА ВРЕМЯ — 60 СЕК»)
+         =================================================================== -->
+    <section id="tab-blitz" class="tab-section hidden space-y-5">
+      <!-- Стартовый экран Блица -->
+      <div id="blitzStartView" class="glass-panel rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto text-center space-y-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-rose-500 flex items-center justify-center text-3xl text-white shadow-lg shadow-amber-500/30">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div>
+          <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30">АРКАДНЫЙ РЕЖИМ</span>
+          <h1 class="font-display font-extrabold text-2xl sm:text-3xl text-white mt-2">Реактор на время — 60 секунд</h1>
+          <p class="text-slate-300 text-sm sm:text-base mt-1.5">
+            Реши максимум примеров за минуту! За каждые <b>3 правильных ответа подряд</b> получай <span class="text-emerald-400 font-extrabold">+3 секунды</span> и повышенный множитель очков!
+          </p>
+        </div>
+
+        <!-- Выбор сложности -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+          <button onclick="setBlitzDifficulty('basic')" data-blitz-diff="basic" class="blitz-diff-btn glass-card rounded-2xl p-4 border-2 transition-all">
+            <div class="font-display font-bold text-base text-cyan-300"><i class="fa-solid fa-gauge mr-1.5"></i>Базовый (x1 очки)</div>
+            <div class="text-xs text-slate-400 mt-1">Вычитание обыкновенных дробей из целого числа (N − a/b)</div>
+          </button>
+          <button onclick="setBlitzDifficulty('pro')" data-blitz-diff="pro" class="blitz-diff-btn glass-card rounded-2xl p-4 border-2 transition-all">
+            <div class="font-display font-bold text-base text-amber-300"><i class="fa-solid fa-fire-flame-curved mr-1.5"></i>Продвинутый (x1.5 очки)</div>
+            <div class="text-xs text-slate-400 mt-1">Обыкновенные дроби + смешанные числа (N − M a/b)</div>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-center gap-4 bg-slate-900/80 rounded-2xl py-3 px-5 border border-slate-800">
+          <i class="fa-solid fa-crown text-amber-400 text-xl"></i>
+          <span class="text-sm font-bold text-slate-300">Твой личный рекорд:</span>
+          <span id="blitzBestRecordLabel" class="font-display font-extrabold text-2xl text-amber-400">0</span>
+        </div>
+
+        <button onclick="startBlitzGame()" class="btn-game btn-amber px-8 py-4 rounded-2xl text-white font-extrabold text-lg w-full sm:w-auto">
+          <i class="fa-solid fa-play mr-2"></i>ЗАПУСТИТЬ РЕАКТОР!
+        </button>
+      </div>
+
+      <!-- Активный экран Блица -->
+      <div id="blitzPlayView" class="hidden max-w-3xl mx-auto space-y-4">
+        <div class="glass-panel rounded-2xl p-4 grid grid-cols-3 gap-3 items-center">
+          <div class="flex items-center gap-2">
+            <button onclick="stopBlitzEarly()" class="btn-game btn-slate w-9 h-9 rounded-xl flex items-center justify-center text-slate-300" title="Завершить">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div>
+              <div class="text-[11px] font-bold text-slate-400 uppercase">Очки</div>
+              <div id="blitzScoreVal" class="font-display font-extrabold text-xl sm:text-2xl text-cyan-400 leading-none">0</div>
+            </div>
+          </div>
+
+          <div class="text-center relative">
+            <div id="blitzTimeBonusPop" class="hidden absolute -top-5 left-1/2 -translate-x-1/2 text-emerald-400 font-display font-extrabold text-sm animate-bounce">+3 сек!</div>
+            <div id="blitzTimerVal" class="font-display font-black text-3xl sm:text-4xl text-white leading-none">60</div>
+            <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden mt-1.5 border border-slate-800">
+              <div id="blitzTimerBar" class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-300" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <div class="text-[11px] font-bold text-slate-400 uppercase">Множитель</div>
+            <div id="blitzComboVal" class="font-display font-extrabold text-xl sm:text-2xl text-amber-400 leading-none">x1</div>
+          </div>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-5 sm:p-7 space-y-5 text-center">
+          <div id="blitzProblemDisplay" class="text-4xl sm:text-6xl text-white py-2"></div>
+
+          <div class="flex flex-wrap items-center justify-center gap-4">
+            <span class="font-display font-extrabold text-3xl text-slate-400">=</span>
+            <div id="blitzFractionInputMount"></div>
+            <button onclick="submitBlitzAnswer()" class="btn-game btn-emerald px-6 py-4 rounded-2xl text-white font-bold text-base">
+              <i class="fa-solid fa-check mr-1"></i>ОК
+            </button>
+          </div>
+
+          <div id="blitzQuickFeedback" class="min-h-[28px] text-sm font-extrabold"></div>
+
+          <div class="flex justify-center">
+            <button onclick="skipBlitzProblem()" class="text-xs font-bold text-slate-400 hover:text-slate-200 underline underline-offset-4">
+              Пропустить пример (сброс серии)
+            </button>
+          </div>
+
+          <div id="blitzNumpadMount" class="max-w-sm mx-auto pt-1"></div>
+        </div>
+      </div>
+
+      <!-- Итоги Блица -->
+      <div id="blitzEndView" class="hidden glass-panel rounded-3xl p-6 sm:p-8 max-w-xl mx-auto text-center space-y-5 animate-pop">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-600 flex items-center justify-center text-3xl text-white shadow-xl">
+          <i class="fa-solid fa-flag-checkered"></i>
+        </div>
+        <div>
+          <div id="blitzNewRecordTag" class="hidden inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-extrabold mb-2">
+            🏆 НОВЫЙ ЛИЧНЫЙ РЕКОРД!
+          </div>
+          <h2 class="font-display font-extrabold text-2xl sm:text-3xl text-white">Время вышло!</h2>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-900/80 rounded-2xl p-4 border border-slate-800">
+          <div>
+            <div class="text-xs text-slate-400 font-bold">Счёт</div>
+            <div id="blitzEndScore" class="font-display font-extrabold text-2xl text-amber-400">0</div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-bold">Решено</div>
+            <div id="blitzEndSolved" class="font-display font-extrabold text-2xl text-emerald-400">0</div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-bold">Точность</div>
+            <div id="blitzEndAcc" class="font-display font-extrabold text-2xl text-cyan-400">0%</div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-bold">Опыт XP</div>
+            <div id="blitzEndXp" class="font-display font-extrabold text-2xl text-violet-400">+0</div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-3">
+          <button onclick="showBlitzStart()" class="btn-game btn-slate px-5 py-3 rounded-xl text-white font-bold text-sm">Настройки</button>
+          <button onclick="startBlitzGame()" class="btn-game btn-amber px-6 py-3 rounded-xl text-white font-bold text-sm">
+            <i class="fa-solid fa-rotate-right mr-1.5"></i>Сыграть ещё!
+          </button>
+          <button onclick="openReportSection()" class="btn-game btn-violet px-5 py-3 rounded-xl text-white font-bold text-sm">
+            <i class="fa-solid fa-paper-plane mr-1.5"></i>Отправить учителю
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         РАЗДЕЛ 4: ПРОФИЛЬ, ОТПРАВКА УЧИТЕЛЮ, ДОСТИЖЕНИЯ, ОШИБКИ И ШПАРГАЛКА
+         =================================================================== -->
+    <section id="tab-profile" class="tab-section hidden space-y-6">
+      <!-- Статистика и Ранг -->
+      <div class="glass-panel rounded-3xl p-5 sm:p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex items-center justify-center text-3xl text-slate-950 shadow-xl shrink-0">
+              <i class="fa-solid fa-user-astronaut"></i>
+            </div>
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-cyan-400">Профиль пилота реактора</div>
+              <h1 id="profRankTitle" class="font-display font-extrabold text-2xl sm:text-3xl text-white">Новичок</h1>
+              <div id="profNextRankHint" class="text-xs sm:text-sm text-slate-400 font-semibold mt-0.5">До следующего звания: 150 XP</div>
+            </div>
+          </div>
+
+          <button onclick="openResetModal()" class="btn-game btn-slate px-4 py-2.5 rounded-xl text-xs font-bold text-rose-300 border-rose-500/30 self-start md:self-center">
+            <i class="fa-solid fa-trash-can mr-1.5"></i>Сбросить прогресс
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-5">
+          <div class="glass-card rounded-2xl p-3.5 text-center">
+            <div class="text-xs text-slate-400 font-bold">Всего XP</div>
+            <div id="profStatXp" class="font-display font-extrabold text-2xl text-cyan-400 mt-1">0</div>
+          </div>
+          <div class="glass-card rounded-2xl p-3.5 text-center">
+            <div class="text-xs text-slate-400 font-bold">Решено задач</div>
+            <div id="profStatSolved" class="font-display font-extrabold text-2xl text-emerald-400 mt-1">0</div>
+          </div>
+          <div class="glass-card rounded-2xl p-3.5 text-center">
+            <div class="text-xs text-slate-400 font-bold">Точность</div>
+            <div id="profStatAcc" class="font-display font-extrabold text-2xl text-violet-400 mt-1">100%</div>
+          </div>
+          <div class="glass-card rounded-2xl p-3.5 text-center">
+            <div class="text-xs text-slate-400 font-bold">Лучшее комбо</div>
+            <div id="profStatCombo" class="font-display font-extrabold text-2xl text-amber-400 mt-1">x1</div>
+          </div>
+          <div class="glass-card rounded-2xl p-3.5 text-center col-span-2 md:col-span-1">
+            <div class="text-xs text-slate-400 font-bold">Рекорд Блица</div>
+            <div id="profStatBlitz" class="font-display font-extrabold text-2xl text-rose-400 mt-1">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ОТПРАВКА РЕЗУЛЬТАТОВ УЧИТЕЛЮ -->
+      <div id="reportSectionCard" class="glass-panel rounded-3xl p-5 sm:p-6 border-cyan-500/35 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">ОТПРАВКА УЧИТЕЛЮ</span>
+            <h2 class="font-display font-extrabold text-xl sm:text-2xl text-white mt-1">
+              <i class="fa-solid fa-paper-plane text-cyan-400 mr-2"></i>Отправить свои достижения
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Укажи имя и класс, затем отправь отчёт с защитным кодом в мессенджер или скачай карточку PNG.</p>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-emerald-500/35 self-start sm:self-center shrink-0">
+            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+            <span class="text-xs font-bold text-slate-400">Код:</span>
+            <span id="reportCodeBadge" class="font-display font-extrabold text-sm text-emerald-300 tracking-wider">R5-000000</span>
+          </div>
+        </div>
+
+        <!-- Поля Имя и Класс -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label for="studentNameInput" class="block text-xs font-bold text-slate-300 mb-1.5">Имя и фамилия ученика *</label>
+            <input id="studentNameInput" type="text" maxlength="40" placeholder="Например: Алихан Сериков"
+              oninput="onStudentIdentityChange()"
+              class="text-input-box w-full px-4 py-2.5 text-sm sm:text-base font-bold">
+          </div>
+          <div>
+            <label for="studentClassInput" class="block text-xs font-bold text-slate-300 mb-1.5">Класс *</label>
+            <input id="studentClassInput" type="text" maxlength="12" placeholder="Например: 5 Б"
+              oninput="onStudentIdentityChange()"
+              class="text-input-box w-full px-4 py-2.5 text-sm sm:text-base font-bold">
+          </div>
+        </div>
+
+        <!-- Превью текстового отчёта -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Предпросмотр отчёта</span>
+            <span class="text-[11px] font-bold text-cyan-400"><i class="fa-solid fa-lock mr-1"></i>Защищено от подделки</span>
+          </div>
+          <pre id="reportPreviewText" class="text-xs sm:text-sm text-slate-200 font-sans whitespace-pre-wrap leading-relaxed select-all"></pre>
+        </div>
+
+        <!-- Кнопки отправки и скачивания -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <button onclick="sendReportWhatsApp()" class="btn-game btn-whatsapp px-4 py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2">
+            <i class="fa-brands fa-whatsapp text-lg"></i>WhatsApp
+          </button>
+          <button onclick="sendReportTelegram()" class="btn-game btn-telegram px-4 py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2">
+            <i class="fa-brands fa-telegram text-lg"></i>Telegram
+          </button>
+          <button onclick="copyReportText()" class="btn-game btn-slate px-4 py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2">
+            <i class="fa-solid fa-copy text-cyan-300"></i>Копировать текст
+          </button>
+          <button onclick="downloadAchievementCard()" class="btn-game btn-amber px-4 py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2">
+            <i class="fa-solid fa-image"></i>Карточка PNG
+          </button>
+        </div>
+
+        <!-- Сворачиваемый блок проверки кода для учителя -->
+        <div class="pt-3 border-t border-slate-800/80">
+          <button onclick="toggleTeacherVerifier()" class="text-xs font-bold text-slate-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-user-check"></i>
+            <span>Я учитель: проверить подлинность отчёта ученика</span>
+            <i id="teacherVerifierArrow" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+          </button>
+
+          <div id="teacherVerifierBox" class="hidden mt-3 bg-slate-950/75 border border-slate-700/80 rounded-2xl p-4 space-y-3 animate-pop">
+            <p class="text-xs text-slate-400">Вставьте сюда полный текст отчёта, который прислал ученик в WhatsApp или Telegram:</p>
+            <textarea id="teacherVerifyInput" rows="4" placeholder="Вставьте сообщение с отчётом целиком..."
+              class="text-input-box w-full p-3 text-xs sm:text-sm font-sans resize-y"></textarea>
+            <div class="flex flex-wrap items-center gap-3">
+              <button onclick="verifyStudentReport()" class="btn-game btn-cyan px-4 py-2 rounded-xl text-white font-bold text-xs sm:text-sm">
+                <i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i>Проверить код
+              </button>
+              <div id="teacherVerifyResult" class="hidden text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8 Достижений -->
+      <div class="glass-panel rounded-3xl p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display font-extrabold text-xl text-white">
+            <i class="fa-solid fa-award text-amber-400 mr-2"></i>Достижения (<span id="achCountLabel">0</span>/8)
+          </h2>
+        </div>
+        <div id="achievementsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+      </div>
+
+      <!-- Журнал ошибок -->
+      <div class="glass-panel rounded-3xl p-5 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="font-display font-extrabold text-xl text-white">
+              <i class="fa-solid fa-screwdriver-wrench text-rose-400 mr-2"></i>Журнал ошибок
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-400">Разбери и исправь сложные примеры, чтобы получить дополнительный опыт!</p>
+          </div>
+        </div>
+        <div id="mistakesListContainer" class="space-y-2.5"></div>
+      </div>
+
+      <!-- Супер-шпаргалка: 3 золотых правила -->
+      <div class="glass-panel rounded-3xl p-5 sm:p-6 space-y-5">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">БАЗА ЗНАНИЙ · 5 КЛАСС</span>
+          <h2 class="font-display font-extrabold text-xl sm:text-2xl text-white mt-1">Супер-шпаргалка: 3 золотых правила</h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="glass-card rounded-2xl p-5 border-t-4 border-t-cyan-400 space-y-3">
+            <div class="text-xs font-extrabold uppercase text-cyan-400">Правило 1 · Из единицы</div>
+            <div class="text-2xl text-white py-2 bg-slate-950/70 rounded-xl text-center">
+              <span class="math-expr">
+                <span>1</span><span class="math-op">−</span>
+                <span class="math-frac"><span class="math-num text-rose-400">a</span><span class="math-den text-amber-300">b</span></span>
+                <span class="math-op">=</span>
+                <span class="math-frac"><span class="math-num text-cyan-300">b − a</span><span class="math-den text-amber-300">b</span></span>
+              </span>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Представь <b>1</b> как дробь с нужным знаменателем (<span class="text-cyan-300 font-bold">b/b</span>), затем вычти числители.
+            </p>
+            <div class="text-sm bg-slate-900/90 rounded-xl p-2.5 text-center text-emerald-300 font-bold">
+              Пример: 1 − 3/8 = 8/8 − 3/8 = 5/8
+            </div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 border-t-4 border-t-amber-400 space-y-3">
+            <div class="text-xs font-extrabold uppercase text-amber-400">Правило 2 · Из целого числа</div>
+            <div class="text-2xl text-white py-2 bg-slate-950/70 rounded-xl text-center">
+              <span class="math-expr">
+                <span>N</span><span class="math-op">−</span>
+                <span class="math-frac"><span class="math-num text-rose-400">a</span><span class="math-den text-amber-300">b</span></span>
+                <span class="math-op">=</span>
+                <span class="text-emerald-300">(N−1)</span>
+                <span class="math-frac"><span class="math-num text-cyan-300">b − a</span><span class="math-den text-amber-300">b</span></span>
+              </span>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              <b>Займи 1</b> у числа N (останется <b>N−1</b>). Разрежь эту единицу на <span class="text-amber-300 font-bold">b/b</span> и вычти дробь!
+            </p>
+            <div class="text-sm bg-slate-900/90 rounded-xl p-2.5 text-center text-emerald-300 font-bold">
+              Пример: 5 − 2/7 = 4 7/7 − 2/7 = 4 5/7
+            </div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 border-t-4 border-t-violet-400 space-y-3">
+            <div class="text-xs font-extrabold uppercase text-violet-400">Правило 3 · Смешанное число</div>
+            <div class="text-2xl text-white py-2 bg-slate-950/70 rounded-xl text-center">
+              <span class="math-expr">
+                <span>N</span><span class="math-op">−</span>
+                <span class="math-mixed"><span class="math-whole text-violet-300">M</span><span class="math-frac"><span class="math-num text-rose-400">a</span><span class="math-den text-amber-300">b</span></span></span>
+                <span class="math-op">=</span>
+                <span class="text-emerald-300">(N−M−1)</span>
+                <span class="math-frac"><span class="math-num text-cyan-300">b−a</span><span class="math-den text-amber-300">b</span></span>
+              </span>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              Сначала вычти целую часть <b>M</b>, а потом <b>займи ещё 1</b>, чтобы вычесть дробь a/b!
+            </p>
+            <div class="text-sm bg-slate-900/90 rounded-xl p-2.5 text-center text-emerald-300 font-bold">
+              Пример: 6 − 2 1/4 = 4 − 1/4 = 3 3/4
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-rose-950/35 border border-rose-500/35 rounded-2xl p-4 sm:p-5">
+          <div class="font-display font-bold text-rose-300 text-base mb-2.5">
+            <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Главные ловушки на контрольной:
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div class="bg-slate-950/60 rounded-xl p-3">
+              <span class="text-rose-400 font-bold">✗ 5 − 2/7 = 5 5/7</span><br>
+              <span class="text-slate-300">Забыли уменьшить 5 на 1 после займа! Верно: <b class="text-emerald-400">4 5/7</b>.</span>
+            </div>
+            <div class="bg-slate-950/60 rounded-xl p-3">
+              <span class="text-rose-400 font-bold">✗ 4 − 1/5 = 3 1/5</span><br>
+              <span class="text-slate-300">Дробь просто переписали, не вычитая из 5/5! Верно: <b class="text-emerald-400">3 4/5</b>.</span>
+            </div>
+            <div class="bg-slate-950/60 rounded-xl p-3">
+              <span class="text-rose-400 font-bold">✗ 6 − 2 3/8 = 4 5/8</span><br>
+              <span class="text-slate-300">Забыли занять ещё 1 для дроби! 6 − 2 = 4, затем 4 − 3/8 = <b class="text-emerald-400">3 5/8</b>.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- МОДАЛЬНОЕ ОКНО: РАЗБОР И ИСПРАВЛЕНИЕ ОШИБКИ -->
+  <div id="mistakeModal" class="hidden fixed inset-0 z-[80] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl p-5 sm:p-6 max-w-lg w-full space-y-4 animate-pop border-cyan-500/35">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display font-extrabold text-lg text-white">
+          <i class="fa-solid fa-screwdriver-wrench text-cyan-400 mr-2"></i>Исправление ошибки
+        </h3>
+        <button onclick="closeMistakeModal()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="mistakeModalProblem" class="text-4xl text-white text-center py-2 bg-slate-950/75 rounded-2xl"></div>
+      <div id="mistakeModalXray" class="flex flex-wrap items-center justify-center gap-3 bg-slate-900/70 rounded-2xl p-3 border border-slate-800"></div>
+      <div id="mistakeModalOldHint" class="text-xs sm:text-sm text-amber-200 bg-amber-500/15 border border-amber-400/30 rounded-xl p-3 font-semibold"></div>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <span class="font-display font-extrabold text-2xl text-slate-400">=</span>
+        <div id="mistakeFractionInputMount"></div>
+        <button onclick="submitMistakeFix()" class="btn-game btn-emerald px-5 py-3.5 rounded-xl text-white font-bold text-sm">Исправить!</button>
+      </div>
+      <div id="mistakeModalFeedback" class="hidden rounded-xl p-3 text-sm font-bold"></div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ СБРОСА ПРОГРЕССА -->
+  <div id="resetModal" class="hidden fixed inset-0 z-[85] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl p-6 max-w-md w-full space-y-4 text-center animate-pop border-rose-500/40">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 class="font-display font-extrabold text-xl text-white">Сбросить весь прогресс?</h3>
+      <p class="text-sm text-slate-300">Обнулятся XP, звание, звёзды в кампании, достижения и рекорды Блица. Это действие нельзя отменить.</p>
+      <div class="flex justify-center gap-3 pt-2">
+        <button onclick="closeResetModal()" class="btn-game btn-slate px-5 py-2.5 rounded-xl text-white font-bold text-sm">Отмена</button>
+        <button onclick="confirmResetProgress()" class="btn-game btn-rose px-5 py-2.5 rounded-xl text-white font-bold text-sm">Да, сбросить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. ЯДРО ДАННЫХ, СОСТОЯНИЕ И СОХРАНЕНИЕ В LOCALSTORAGE
+       ========================================================================= */
+    const STORAGE_KEY = 'fraction_reactor_5_state_v1';
+    const REPORT_SECRET_SALT = 'REACTOR5_VERIFY_2026';
+
+    const RANKS = [
+      { minXp: 0, title: 'Новичок', icon: 'fa-seedling' },
+      { minXp: 150, title: 'Ученик', icon: 'fa-book-open' },
+      { minXp: 400, title: 'Мастер долей', icon: 'fa-pizza-slice' },
+      { minXp: 800, title: 'Архитектор дробей', icon: 'fa-compass-drafting' },
+      { minXp: 1400, title: 'Легенда 5 класса', icon: 'fa-crown' }
+    ];
+
+    const ACHIEVEMENTS = [
+      { id: 'first_slice', title: 'Первый разрез', desc: 'Разрежь целую фигуру в Лаборатории', icon: 'fa-scissors', color: 'from-cyan-400 to-blue-500' },
+      { id: 'sandbox_explorer', title: 'Лаборант', desc: 'Реши пример в Свободной песочнице', icon: 'fa-flask', color: 'from-violet-400 to-indigo-500' },
+      { id: 'flawless_level', title: 'Без единой царапины', desc: 'Пройди уровень кампании на 3 звезды', icon: 'fa-shield-heart', color: 'from-emerald-400 to-teal-500' },
+      { id: 'combo_5', title: 'Комбо x5', desc: 'Дай 5 верных ответов подряд', icon: 'fa-fire', color: 'from-amber-400 to-orange-500' },
+      { id: 'reducer_master', title: 'Мастер сокращений', desc: 'Успешно сократи 3 дроби', icon: 'fa-compress', color: 'from-sky-400 to-cyan-500' },
+      { id: 'titan_slayer', title: 'Повелитель Титана', desc: 'Победи Дробного Титана в Босс-баттле', icon: 'fa-dragon', color: 'from-rose-500 to-red-600' },
+      { id: 'blitz_sprinter', title: 'Спринтер', desc: 'Набери 350+ очков в Блиц-Аркаде', icon: 'fa-bolt', color: 'from-yellow-400 to-amber-500' },
+      { id: 'mistake_fixer', title: 'Инженер-аналитик', desc: 'Исправь ошибку в Журнале ошибок', icon: 'fa-screwdriver-wrench', color: 'from-fuchsia-400 to-purple-500' }
+    ];
+
+    const CAMPAIGN_LEVELS = [
+      {
+        id: 1,
+        title: 'Сила единицы',
+        subtitle: 'Вычитание дроби из числа 1 (1 − a/b)',
+        tasksCount: 5,
+        badge: 'СЕКТОР 1',
+        accent: 'cyan',
+        icon: 'fa-1',
+        xpReward: 70
+      },
+      {
+        id: 2,
+        title: 'Займи у целого',
+        subtitle: 'Вычитание дроби из натурального числа (N − a/b)',
+        tasksCount: 6,
+        badge: 'СЕКТОР 2',
+        accent: 'emerald',
+        icon: 'fa-layer-group',
+        xpReward: 100
+      },
+      {
+        id: 3,
+        title: 'Смешанный удар',
+        subtitle: 'Вычитание смешанных чисел (N − M a/b)',
+        tasksCount: 6,
+        badge: 'СЕКТОР 3',
+        accent: 'amber',
+        icon: 'fa-wand-sparkles',
+        xpReward: 130
+      },
+      {
+        id: 4,
+        title: 'Мастер сокращений',
+        subtitle: 'Вычти и обязательно сократи дробь до конца!',
+        tasksCount: 6,
+        badge: 'СЕКТОР 4',
+        accent: 'violet',
+        icon: 'fa-compress',
+        xpReward: 160,
+        requireReduced: true
+      },
+      {
+        id: 5,
+        title: 'БОСС: ДРОБНЫЙ ТИТАН',
+        subtitle: 'Эпическая битва на 100 HP! Все типы примеров.',
+        tasksCount: 10,
+        badge: 'ФИНАЛЬНЫЙ БОСС',
+        accent: 'rose',
+        icon: 'fa-skull',
+        xpReward: 280,
+        isBoss: true
+      }
+    ];
+
+    function getDefaultState() {
+      return {
+        studentName: '',
+        studentClass: '',
+        xp: 0,
+        totalSolved: 0,
+        totalAttempts: 0,
+        currentCombo: 0,
+        bestCombo: 1,
+        bestBlitzScore: 0,
+        skin: 'pizza',
+        soundOn: true,
+        allUnlocked: false,
+        guidedDone: [false, false, false],
+        reducedCount: 0,
+        mistakesFixed: 0,
+        levels: {
+          1: { unlocked: true, stars: 0, bestAcc: 0 },
+          2: { unlocked: false, stars: 0, bestAcc: 0 },
+          3: { unlocked: false, stars: 0, bestAcc: 0 },
+          4: { unlocked: false, stars: 0, bestAcc: 0 },
+          5: { unlocked: false, stars: 0, bestAcc: 0 }
+        },
+        achievements: [],
+        mistakes: []
+      };
+    }
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getDefaultState();
+        const parsed = JSON.parse(raw);
+        const def = getDefaultState();
+        return {
+          ...def,
+          ...parsed,
+          levels: { ...def.levels, ...(parsed.levels || {}) },
+          guidedDone: Array.isArray(parsed.guidedDone) ? parsed.guidedDone : def.guidedDone,
+          achievements: Array.isArray(parsed.achievements) ? parsed.achievements : [],
+          mistakes: Array.isArray(parsed.mistakes) ? parsed.mistakes : []
+        };
+      } catch (e) {
+        return getDefaultState();
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        // Игнорируем ограничения квоты хранилища
+      }
+    }
+
+    /* =========================================================================
+       2. ПРОЦЕДУРНЫЙ ЗВУКОВОЙ СИНТЕЗАТОР (WEB AUDIO API)
+       ========================================================================= */
+    const SoundFX = (() => {
+      let ctx = null;
+
+      function ensureCtx() {
+        if (!state.soundOn) return null;
+        try {
+          if (!ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            ctx = new AudioCtx();
+          }
+          if (ctx.state === 'suspended') ctx.resume();
+          return ctx;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function playTone(freq, type, duration, vol = 0.12, delay = 0, freqEnd = null) {
+        const c = ensureCtx();
+        if (!c) return;
+        const now = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        if (freqEnd !== null) {
+          osc.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), now + duration);
+        }
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(vol, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + duration);
+        osc.connect(gain);
+        gain.connect(c.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      }
+
+      return {
+        click() { playTone(520, 'triangle', 0.05, 0.06, 0, 380); },
+        slice() {
+          playTone(900, 'sawtooth', 0.14, 0.08, 0, 260);
+          playTone(1240, 'sine', 0.16, 0.09, 0.05, 1680);
+        },
+        pick() { playTone(440, 'sine', 0.09, 0.1, 0, 680); },
+        correct(combo = 1) {
+          const boost = Math.min(combo - 1, 6) * 35;
+          playTone(523 + boost, 'triangle', 0.12, 0.12, 0);
+          playTone(659 + boost, 'triangle', 0.13, 0.12, 0.07);
+          playTone(784 + boost, 'sine', 0.22, 0.14, 0.14);
+        },
+        wrong() {
+          playTone(230, 'sawtooth', 0.16, 0.08, 0, 175);
+          playTone(175, 'sawtooth', 0.22, 0.08, 0.12, 130);
+        },
+        bossHit() {
+          playTone(880, 'sawtooth', 0.18, 0.1, 0, 180);
+          playTone(120, 'square', 0.26, 0.14, 0.12, 55);
+          playTone(660, 'triangle', 0.18, 0.1, 0.14, 990);
+        },
+        bossAttack() {
+          playTone(320, 'sawtooth', 0.2, 0.11, 0, 110);
+          playTone(140, 'square', 0.28, 0.12, 0.1, 65);
+        },
+        victory() {
+          const notes = [523, 659, 784, 1046];
+          notes.forEach((n, idx) => playTone(n, 'triangle', 0.26, 0.13, idx * 0.1));
+        },
+        badge() {
+          playTone(740, 'sine', 0.12, 0.1, 0);
+          playTone(987, 'sine', 0.14, 0.11, 0.08);
+          playTone(1318, 'triangle', 0.28, 0.12, 0.16);
+        }
+      };
+    })();
+
+    /* =========================================================================
+       3. ДВИЖОК ЧАСТИЦ И КОНФЕТТИ НА CANVAS
+       ========================================================================= */
+    const ParticleFX = (() => {
+      const canvas = document.getElementById('particlesCanvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      let rafId = null;
+
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+
+      function loop() {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= 0.985;
+          p.rot += p.vRot;
+          p.life -= p.decay;
+          if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.life);
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.fillStyle = p.color;
+          if (p.shape === 'rect') {
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+          } else {
+            ctx.beginPath();
+            ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+        if (particles.length > 0) {
+          rafId = requestAnimationFrame(loop);
+        } else {
+          rafId = null;
+        }
+      }
+
+      function burst(x, y, count = 28, colors = ['#22d3ee', '#f59e0b', '#10b981', '#8b5cf6', '#f43f5e']) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 2.5 + Math.random() * 7.5;
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 2.5,
+            gravity: 0.22,
+            size: 5 + Math.random() * 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            shape: Math.random() > 0.45 ? 'rect' : 'circle',
+            rot: Math.random() * Math.PI,
+            vRot: (Math.random() - 0.5) * 0.25,
+            life: 1,
+            decay: 0.014 + Math.random() * 0.015
+          });
+        }
+        if (!rafId) loop();
+      }
+
+      function confetti() {
+        const w = window.innerWidth;
+        burst(w * 0.25, window.innerHeight * 0.3, 45);
+        setTimeout(() => burst(w * 0.75, window.innerHeight * 0.3, 45), 140);
+        setTimeout(() => burst(w * 0.5, window.innerHeight * 0.22, 60), 280);
+      }
+
+      return { burst, confetti };
+    })();
+
+    /* =========================================================================
+       4. МАТЕМАТИЧЕСКОЕ ЯДРО И УМНАЯ ДИАГНОСТИКА ОШИБОК 5 КЛАССА
+       ========================================================================= */
+    function gcd(a, b) {
+      a = Math.abs(Math.round(a));
+      b = Math.abs(Math.round(b));
+      while (b !== 0) {
+        const t = b;
+        b = a % b;
+        a = t;
+      }
+      return a || 1;
+    }
+
+    function solveProblem(prob) {
+      const whole = prob.N - prob.M - 1;
+      const num = prob.b - prob.a;
+      const den = prob.b;
+      const g = gcd(num, den);
+      return {
+        whole,
+        num,
+        den,
+        rNum: num / g,
+        rDen: den / g,
+        canReduce: g > 1,
+        divisor: g
+      };
+    }
+
+    function diagnoseAnswer(prob, input, requireReduced = false) {
+      const exact = solveProblem(prob);
+      const rawWhole = (input.whole ?? '').toString().trim();
+      const rawNum = (input.num ?? '').toString().trim();
+      const rawDen = (input.den ?? '').toString().trim();
+
+      if (rawNum === '' || rawDen === '') {
+        return {
+          status: 'incomplete',
+          message: 'Заполни числитель и знаменатель дроби! (Если целых 0, левое поле можно оставить пустым.)'
+        };
+      }
+
+      const uWhole = rawWhole === '' ? 0 : parseInt(rawWhole, 10);
+      const uNum = parseInt(rawNum, 10);
+      const uDen = parseInt(rawDen, 10);
+
+      if (isNaN(uWhole) || isNaN(uNum) || isNaN(uDen) || uWhole < 0 || uNum < 0 || uDen <= 0) {
+        return {
+          status: 'incomplete',
+          message: 'Вводи только натуральные числа (знаменатель не может быть нулём).'
+        };
+      }
+
+      if (uNum === 0) {
+        return {
+          status: 'wrong',
+          message: `Дробная часть не может исчезнуть! От ${prob.b}/${prob.b} мы отняли ${prob.a}/${prob.b}, осталось ${exact.num}/${exact.den}.`
+        };
+      }
+
+      if (uNum >= uDen) {
+        return {
+          status: 'wrong',
+          message: `Дробь ${uNum}/${uDen} неправильная (числитель ≥ знаменателя). Выдели целую часть или проверь вычитание!`
+        };
+      }
+
+      const userTotalNum = uWhole * uDen + uNum;
+      const exactTotalNum = exact.whole * exact.rDen + exact.rNum;
+      const isEqual = userTotalNum * exact.rDen === exactTotalNum * uDen;
+
+      if (isEqual) {
+        const gUser = gcd(uNum, uDen);
+        if (requireReduced && gUser > 1) {
+          return {
+            status: 'needs_reduction',
+            message: `Почти! Ответ верный, но дробь ${uNum}/${uDen} можно сократить! Раздели числитель и знаменатель на ${gUser}, чтобы получить максимум очков.`
+          };
+        }
+        return {
+          status: 'correct',
+          wasReduced: exact.canReduce && gUser === 1
+        };
+      }
+
+      if (prob.M === 0 && uWhole === prob.N && uNum === exact.num && uDen === prob.b) {
+        return {
+          status: 'wrong',
+          trapType: 'forgot_borrow',
+          message: `Ловушка! Ты занял 1 целое у числа ${prob.N}, чтобы разрезать его на ${prob.b}/${prob.b} — значит целых осталось ${prob.N - 1}, а не ${prob.N}!`
+        };
+      }
+
+      if (prob.M > 0 && uWhole === (prob.N - prob.M) && uDen === prob.b) {
+        return {
+          status: 'wrong',
+          trapType: 'forgot_mixed_borrow',
+          message: `Почти! ${prob.N} − ${prob.M} = ${prob.N - prob.M}, но ещё нужно занять 1 целое, чтобы вычесть ${prob.a}/${prob.b}. Поэтому целых останется ${prob.N - prob.M} − 1 = ${exact.whole}!`
+        };
+      }
+
+      if (uNum === prob.a && uDen === prob.b && prob.a !== exact.num) {
+        return {
+          status: 'wrong',
+          trapType: 'forgot_sub_num',
+          message: `Смотри: было ${prob.b}/${prob.b}, мы отняли ${prob.a}/${prob.b}. Сколько долей осталось? ${prob.b} − ${prob.a} = ${exact.num}!`
+        };
+      }
+
+      if (uDen !== prob.b && prob.b % uDen !== 0 && uDen % exact.rDen !== 0) {
+        return {
+          status: 'wrong',
+          trapType: 'wrong_den',
+          message: `Знаменатель показывает, на сколько долей разрезано целое — при вычитании он не меняется (должно остаться ${prob.b}${exact.canReduce ? ' или после сокращения ' + exact.rDen : ''})!`
+        };
+      }
+
+      if (uWhole !== exact.whole && (uNum * exact.rDen === exact.rNum * uDen)) {
+        const stepStr = prob.M > 0
+          ? `${prob.N} − ${prob.M} = ${prob.N - prob.M}, и ещё занимаем 1 → остаётся ${exact.whole}`
+          : `У числа ${prob.N} заняли 1 целое → осталось ${exact.whole}`;
+        return {
+          status: 'wrong',
+          trapType: 'wrong_whole',
+          message: `Дробная часть верна, а вот целых должно быть ${exact.whole}! (${stepStr}).`
+        };
+      }
+
+      const hintStep = prob.M > 0
+        ? `Сначала отними целые: ${prob.N} − ${prob.M} = ${prob.N - prob.M}. Потом займи 1: ${exact.whole} целых и ${prob.b}/${prob.b} − ${prob.a}/${prob.b}.`
+        : `Займи 1 у числа ${prob.N}: получится ${exact.whole > 0 ? exact.whole + ' и ' : ''}${prob.b}/${prob.b}. Теперь отними ${prob.a}/${prob.b}!`;
+
+      return {
+        status: 'wrong',
+        trapType: 'general',
+        message: `Не совсем так. Подсказка: ${hintStep}`
+      };
+    }
+
+    /* =========================================================================
+       5. HTML-РЕНДЕР МАТЕМАТИЧЕСКИХ ДРОБЕЙ И ПОЛЕЙ ВВОДА
+       ========================================================================= */
+    function htmlFrac(num, den, numClass = '', denClass = '') {
+      return `<span class="math-frac"><span class="math-num ${numClass}">${num}</span><span class="math-den ${denClass}">${den}</span></span>`;
+    }
+
+    function htmlMixed(whole, num, den, wholeClass = '', numClass = '', denClass = '') {
+      if (!whole || whole === 0) return htmlFrac(num, den, numClass, denClass);
+      return `<span class="math-mixed"><span class="math-whole ${wholeClass}">${whole}</span>${htmlFrac(num, den, numClass, denClass)}</span>`;
+    }
+
+    function htmlProblem(prob) {
+      const subPart = prob.M > 0
+        ? htmlMixed(prob.M, prob.a, prob.b, 'text-violet-300', 'text-rose-400', 'text-amber-300')
+        : htmlFrac(prob.a, prob.b, 'text-rose-400', 'text-amber-300');
+      return `<span class="math-expr"><span class="text-cyan-300">${prob.N}</span><span class="math-op">−</span>${subPart}</span>`;
+    }
+
+    function formatPlainAnswer(whole, num, den) {
+      return whole > 0 ? `${whole} ${num}/${den}` : `${num}/${den}`;
+    }
+
+    function formatPlainProblem(prob) {
+      return prob.M > 0 ? `${prob.N} − ${prob.M} ${prob.a}/${prob.b}` : `${prob.N} − ${prob.a}/${prob.b}`;
+    }
+
+    let activeInputContext = null;
+
+    function mountFractionInput(mountId, prefix, onSubmitFn, showWhole = true) {
+      const el = document.getElementById(mountId);
+      if (!el) return;
+      el.innerHTML = `
+        <div class="inline-flex items-center gap-2.5 bg-slate-950/60 border border-slate-700/80 rounded-2xl p-2.5 sm:p-3">
+          ${showWhole ? `
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] font-bold uppercase text-slate-400 mb-1">Целое</span>
+              <input id="${prefix}-whole" type="text" inputmode="numeric" maxlength="2" placeholder="0"
+                class="frac-input-box w-14 h-14 sm:w-16 sm:h-16 text-2xl sm:text-3xl" autocomplete="off">
+            </div>
+          ` : `<input id="${prefix}-whole" type="hidden" value="0">`}
+          <div class="flex flex-col items-center gap-1.5">
+            <input id="${prefix}-num" type="text" inputmode="numeric" maxlength="2" placeholder="?"
+              class="frac-input-box w-14 h-11 sm:w-16 sm:h-12 text-xl sm:text-2xl" autocomplete="off">
+            <div class="w-16 sm:w-[4.5rem] h-1 bg-cyan-400 rounded-full"></div>
+            <input id="${prefix}-den" type="text" inputmode="numeric" maxlength="2" placeholder="?"
+              class="frac-input-box w-14 h-11 sm:w-16 sm:h-12 text-xl sm:text-2xl" autocomplete="off">
+          </div>
+        </div>
+      `;
+
+      const fields = showWhole ? ['whole', 'num', 'den'] : ['num', 'den'];
+      fields.forEach((f, idx) => {
+        const inp = document.getElementById(`${prefix}-${f}`);
+        if (!inp) return;
+        inp.addEventListener('focus', () => {
+          setActiveField(prefix, f, onSubmitFn, showWhole);
+        });
+        inp.addEventListener('input', () => {
+          inp.value = inp.value.replace(/[^0-9]/g, '').slice(0, 2);
+        });
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            onSubmitFn();
+          } else if (e.key === 'ArrowRight' || (e.key === 'ArrowDown' && f === 'num')) {
+            e.preventDefault();
+            const next = fields[(idx + 1) % fields.length];
+            focusFractionField(prefix, next);
+          } else if (e.key === 'ArrowLeft' || (e.key === 'ArrowUp' && f === 'den')) {
+            e.preventDefault();
+            const prev = fields[(idx - 1 + fields.length) % fields.length];
+            focusFractionField(prefix, prev);
+          }
+        });
+      });
+
+      setActiveField(prefix, showWhole ? 'whole' : 'num', onSubmitFn, showWhole);
+    }
+
+    function setActiveField(prefix, field, onSubmitFn, showWhole) {
+      document.querySelectorAll('.frac-input-box').forEach(b => b.classList.remove('active-field'));
+      const inp = document.getElementById(`${prefix}-${field}`);
+      if (inp) inp.classList.add('active-field');
+      activeInputContext = { prefix, field, onSubmit: onSubmitFn, showWhole };
+    }
+
+    function focusFractionField(prefix, field) {
+      const inp = document.getElementById(`${prefix}-${field}`);
+      if (inp && inp.type !== 'hidden') {
+        inp.focus();
+        inp.select();
+      }
+    }
+
+    function readFractionInput(prefix) {
+      const w = document.getElementById(`${prefix}-whole`);
+      const n = document.getElementById(`${prefix}-num`);
+      const d = document.getElementById(`${prefix}-den`);
+      return {
+        whole: w ? w.value : '',
+        num: n ? n.value : '',
+        den: d ? d.value : ''
+      };
+    }
+
+    function clearFractionInput(prefix, showWhole = true) {
+      const w = document.getElementById(`${prefix}-whole`);
+      const n = document.getElementById(`${prefix}-num`);
+      const d = document.getElementById(`${prefix}-den`);
+      if (w && w.type !== 'hidden') w.value = '';
+      if (n) n.value = '';
+      if (d) d.value = '';
+      if (window.innerWidth >= 768) {
+        focusFractionField(prefix, showWhole ? 'whole' : 'num');
+      } else if (activeInputContext && activeInputContext.prefix === prefix) {
+        setActiveField(prefix, showWhole ? 'whole' : 'num', activeInputContext.onSubmit, showWhole);
+      }
+    }
+
+    function mountNumpad(mountId, prefix, onSubmitFn, showWhole = true) {
+      const el = document.getElementById(mountId);
+      if (!el) return;
+      const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','→'];
+      el.innerHTML = `
+        <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
+          ${keys.map(k => {
+            let cls = 'bg-slate-800/90 hover:bg-slate-700 text-white border border-slate-700';
+            if (k === '⌫') cls = 'bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-500/30';
+            if (k === '→') cls = 'bg-cyan-950/70 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/30';
+            return `<button type="button" onclick="handleNumpadPress('${prefix}', '${k}', ${showWhole})"
+              class="btn-game ${cls} py-2.5 rounded-xl font-display font-bold text-base sm:text-lg">${k}</button>`;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function handleNumpadPress(prefix, key, showWhole) {
+      SoundFX.click();
+      const fields = showWhole ? ['whole', 'num', 'den'] : ['num', 'den'];
+      let currentField = (activeInputContext && activeInputContext.prefix === prefix)
+        ? activeInputContext.field
+        : fields[0];
+      if (!fields.includes(currentField)) currentField = fields[0];
+
+      const inp = document.getElementById(`${prefix}-${currentField}`);
+      if (!inp || inp.disabled) return;
+
+      if (key === '⌫') {
+        inp.value = inp.value.slice(0, -1);
+      } else if (key === '→') {
+        const nextField = fields[(fields.indexOf(currentField) + 1) % fields.length];
+        setActiveField(prefix, nextField, activeInputContext?.onSubmit || (() => {}), showWhole);
+        return;
+      } else {
+        if (inp.value.length < 2) {
+          inp.value += key;
+        }
+      }
+      setActiveField(prefix, currentField, activeInputContext?.onSubmit || (() => {}), showWhole);
+    }
+
+    /* =========================================================================
+       6. ГЕНЕРАТОР SVG-МОДЕЛЕЙ (ПИЦЦА / ЭНЕРГОЯДРА / ШОКОЛАДНЫЕ ПЛИТКИ)
+       ========================================================================= */
+    const CHOCO_LAYOUTS = {
+      2: { cols: 2, rows: 1, w: 144 },
+      3: { cols: 3, rows: 1, w: 144 },
+      4: { cols: 2, rows: 2, w: 144 },
+      5: { cols: 5, rows: 1, w: 156 },
+      6: { cols: 3, rows: 2, w: 144 },
+      7: { cols: 7, rows: 1, w: 186 },
+      8: { cols: 4, rows: 2, w: 156 },
+      9: { cols: 3, rows: 3, w: 144 },
+      10: { cols: 5, rows: 2, w: 176 },
+      11: { cols: 11, rows: 1, w: 234 },
+      12: { cols: 4, rows: 3, w: 156 }
+    };
+
+    function polarToCartesian(cx, cy, r, angleDeg) {
+      const rad = (angleDeg - 90) * Math.PI / 180;
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function createWedgePath(cx, cy, r, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, r, endAngle);
+      const end = polarToCartesian(cx, cy, r, startAngle);
+      const largeArc = endAngle - startAngle <= 180 ? '0' : '1';
+      return `M ${cx} ${cy} L ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 0 ${end.x.toFixed(2)} ${end.y.toFixed(2)} Z`;
+    }
+
+    function renderVisualUnitSVG(opts) {
+      const {
+        skin = state.skin,
+        sliced = false,
+        justSliced = false,
+        b = 8,
+        removedSlices = new Set(),
+        isRemovedWhole = false,
+        unitIdx = 0,
+        interactiveWhole = false,
+        interactiveSlice = false,
+        size = 132,
+        uid = 'u'
+      } = opts;
+
+      const wholeClickAttr = interactiveWhole ? `onclick="onLabWholeClick(${unitIdx})"` : '';
+      const unitClasses = `svg-unit ${interactiveWhole ? 'clickable' : ''} ${isRemovedWhole ? 'removed' : ''}`;
+      const flashClass = justSliced ? 'animate-slice-flash' : '';
+
+      // === СКИН 3: ШОКОЛАДНАЯ ПЛИТКА ===
+      if (skin === 'choco') {
+        const h = 112;
+        if (!sliced) {
+          const w = 138;
+          return `
+            <div class="flex flex-col items-center gap-1.5 ${unitClasses}" ${wholeClickAttr}>
+              <svg width="${size}" height="${Math.round(size * 0.82)}" viewBox="0 0 ${w} ${h}">
+                <defs>
+                  <linearGradient id="choco-${uid}" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#854d0e"/>
+                    <stop offset="50%" stop-color="#5c2d16"/>
+                    <stop offset="100%" stop-color="#3b1a0c"/>
+                  </linearGradient>
+                </defs>
+                <rect x="6" y="8" width="126" height="96" rx="14" fill="url(#choco-${uid})" stroke="#d97706" stroke-width="2.5"/>
+                <rect x="16" y="18" width="106" height="76" rx="8" fill="none" stroke="rgba(253,230,138,0.28)" stroke-width="2"/>
+                <text x="69" y="64" text-anchor="middle" fill="#fde68a" font-family="Rubik" font-weight="800" font-size="24">1</text>
+              </svg>
+              <span class="text-[11px] font-bold ${isRemovedWhole ? 'text-slate-500 line-through' : 'text-amber-300'}">${isRemovedWhole ? 'Убрано' : '1 целая'}</span>
+            </div>
+          `;
+        } else {
+          const layout = CHOCO_LAYOUTS[b] || { cols: b, rows: 1, w: Math.max(144, b * 21) };
+          const { cols, rows, w } = layout;
+          const pad = 8, gap = 3;
+          const cellW = (w - pad * 2 - gap * (cols - 1)) / cols;
+          const cellH = (h - pad * 2 - gap * (rows - 1)) / rows;
+          const innerPad = Math.min(3, cellW * 0.18, cellH * 0.18);
+          const xRadius = Math.min(8, cellW * 0.28, cellH * 0.28);
+
+          let rects = '';
+          for (let i = 0; i < b; i++) {
+            const r = Math.floor(i / cols);
+            const c = i % cols;
+            const x = pad + c * (cellW + gap);
+            const y = pad + r * (cellH + gap);
+            const cxCell = x + cellW / 2;
+            const cyCell = y + cellH / 2;
+            const rem = removedSlices.has(i);
+            const clickAttr = (interactiveSlice && !rem) ? `onclick="onLabSliceClick(${i}, event)"` : '';
+            const cls = `svg-slice ${interactiveSlice && !rem ? 'slice-clickable' : ''} ${rem ? 'slice-removed' : ''}`;
+
+            rects += `
+              <g class="${cls}" ${clickAttr}>
+                <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cellW.toFixed(1)}" height="${cellH.toFixed(1)}" rx="5"
+                  fill="${rem ? '#1e293b' : '#713f12'}" stroke="${rem ? '#f43f5e' : '#f59e0b'}" stroke-width="2" ${rem ? 'stroke-dasharray="4 3"' : ''}/>
+                ${!rem ? `
+                  <rect x="${(x + innerPad).toFixed(1)}" y="${(y + innerPad).toFixed(1)}"
+                    width="${Math.max(2, cellW - innerPad * 2).toFixed(1)}" height="${Math.max(2, cellH - innerPad * 2).toFixed(1)}"
+                    rx="3" fill="rgba(251,191,36,0.16)"/>
+                ` : `
+                  <line x1="${(cxCell - xRadius).toFixed(1)}" y1="${(cyCell - xRadius).toFixed(1)}"
+                        x2="${(cxCell + xRadius).toFixed(1)}" y2="${(cyCell + xRadius).toFixed(1)}" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="${(cxCell + xRadius).toFixed(1)}" y1="${(cyCell - xRadius).toFixed(1)}"
+                        x2="${(cxCell - xRadius).toFixed(1)}" y2="${(cyCell + xRadius).toFixed(1)}" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round"/>
+                `}
+              </g>
+            `;
+          }
+
+          const left = b - removedSlices.size;
+          const displayW = Math.round(size * (w / 120));
+          const displayH = Math.round(size * (h / 120));
+          return `
+            <div class="flex flex-col items-center gap-1.5 ${flashClass}">
+              <svg width="${displayW}" height="${displayH}" viewBox="0 0 ${w} ${h}">
+                ${rects}
+              </svg>
+              <span class="text-xs font-extrabold text-cyan-300">${left}/${b} осталось</span>
+            </div>
+          `;
+        }
+      }
+
+      // === КРУГОВЫЕ СКИНЫ: ПИЦЦА И ЭНЕРГОЯДРА ===
+      const cx = 100, cy = 100, r = 86;
+      const isPizza = skin === 'pizza';
+
+      if (!sliced) {
+        const innerDecor = isPizza
+          ? `
+            <circle cx="100" cy="100" r="86" fill="#d97706" stroke="#f59e0b" stroke-width="4"/>
+            <circle cx="100" cy="100" r="74" fill="#fbbf24"/>
+            <circle cx="72" cy="74" r="10" fill="#dc2626"/>
+            <circle cx="128" cy="78" r="11" fill="#dc2626"/>
+            <circle cx="100" cy="126" r="10" fill="#dc2626"/>
+            <circle cx="68" cy="118" r="8" fill="#dc2626"/>
+            <circle cx="132" cy="118" r="9" fill="#dc2626"/>
+            <circle cx="102" cy="96" r="7" fill="#16a34a"/>
+            <circle cx="84" cy="102" r="5" fill="#16a34a"/>
+            <circle cx="120" cy="100" r="5" fill="#16a34a"/>
+          `
+          : `
+            <circle cx="100" cy="100" r="86" fill="#0f172a" stroke="#22d3ee" stroke-width="4"/>
+            <circle cx="100" cy="100" r="70" fill="rgba(34,211,238,0.22)" stroke="#38bdf8" stroke-width="2" stroke-dasharray="10 6"/>
+            <circle cx="100" cy="100" r="38" fill="#06b6d4"/>
+            <circle cx="100" cy="100" r="18" fill="#e0f2fe"/>
+          `;
+
+        return `
+          <div class="flex flex-col items-center gap-1.5 ${unitClasses}" ${wholeClickAttr}>
+            <svg width="${size}" height="${size}" viewBox="0 0 200 200">
+              ${innerDecor}
+              <circle cx="100" cy="100" r="22" fill="rgba(15,23,42,0.72)"/>
+              <text x="100" y="108" text-anchor="middle" fill="#ffffff" font-family="Rubik" font-weight="800" font-size="24">1</text>
+            </svg>
+            <span class="text-[11px] font-bold ${isRemovedWhole ? 'text-slate-500 line-through' : (isPizza ? 'text-amber-300' : 'text-cyan-300')}">${isRemovedWhole ? 'Убрано' : '1 целая'}</span>
+          </div>
+        `;
+      } else {
+        const step = 360 / b;
+        let wedges = '';
+        for (let i = 0; i < b; i++) {
+          const a1 = i * step;
+          const a2 = (i + 1) * step;
+          const mid = a1 + step / 2;
+          const rem = removedSlices.has(i);
+
+          const offset = rem ? polarToCartesian(0, 0, 8, mid) : { x: 0, y: 0 };
+          const dOuter = createWedgePath(cx, cy, r, a1, a2);
+          const dInner = createWedgePath(cx, cy, r - 11, a1, a2);
+          const pepPos = polarToCartesian(cx, cy, r * 0.54, mid);
+
+          const clickAttr = (interactiveSlice && !rem) ? `onclick="onLabSliceClick(${i}, event)"` : '';
+          const cls = `svg-slice ${interactiveSlice && !rem ? 'slice-clickable' : ''} ${rem ? 'slice-removed' : ''}`;
+
+          const fillOuter = rem ? '#1e293b' : (isPizza ? '#d97706' : '#0891b2');
+          const fillInner = rem ? '#0f172a' : (isPizza ? '#fbbf24' : '#22d3ee');
+          const strokeCol = rem ? '#f43f5e' : '#0b1020';
+
+          wedges += `
+            <g class="${cls}" transform="translate(${offset.x.toFixed(1)}, ${offset.y.toFixed(1)})" ${clickAttr}>
+              <path d="${dOuter}" fill="${fillOuter}" stroke="${strokeCol}" stroke-width="2.5"/>
+              <path d="${dInner}" fill="${fillInner}" stroke="${strokeCol}" stroke-width="2"/>
+              ${!rem && isPizza ? `<circle cx="${pepPos.x.toFixed(1)}" cy="${pepPos.y.toFixed(1)}" r="${b > 9 ? 5 : 7}" fill="#dc2626"/>` : ''}
+              ${!rem && !isPizza ? `<circle cx="${pepPos.x.toFixed(1)}" cy="${pepPos.y.toFixed(1)}" r="${b > 9 ? 4 : 6}" fill="#e0f2fe" opacity="0.8"/>` : ''}
+              ${rem ? `<text x="${pepPos.x.toFixed(1)}" y="${(pepPos.y + 5).toFixed(1)}" text-anchor="middle" fill="#f43f5e" font-family="Rubik" font-weight="900" font-size="16">✕</text>` : ''}
+            </g>
+          `;
+        }
+        const left = b - removedSlices.size;
+        return `
+          <div class="flex flex-col items-center gap-1.5 ${flashClass}">
+            <svg width="${Math.round(size * 1.12)}" height="${Math.round(size * 1.12)}" viewBox="-10 -10 220 220">
+              ${wedges}
+              <circle cx="100" cy="100" r="13" fill="#0b1020" stroke="#334155" stroke-width="2"/>
+            </svg>
+            <span class="text-xs font-extrabold text-cyan-300">${left}/${b} осталось</span>
+          </div>
+        `;
+      }
+    }
+
+    function renderXrayDiagramHTML(prob) {
+      const exact = solveProblem(prob);
+      const removedSet = new Set();
+      for (let i = 0; i < prob.a; i++) removedSet.add(i);
+
+      const wholeInfo = exact.whole > 0
+        ? `
+          <div class="flex flex-col items-center bg-slate-900/90 border border-emerald-500/30 rounded-2xl px-4 py-3">
+            <div class="text-xs font-bold text-slate-400">Целых осталось</div>
+            <div class="font-display font-extrabold text-3xl text-emerald-400 mt-0.5">${exact.whole}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">${prob.M > 0 ? `${prob.N} − ${prob.M} − 1` : `${prob.N} − 1`}</div>
+          </div>
+          <div class="font-display font-extrabold text-2xl text-slate-500">+</div>
+        `
+        : `
+          <div class="flex flex-col items-center bg-slate-900/90 border border-slate-700 rounded-2xl px-3.5 py-2.5">
+            <div class="text-xs font-bold text-slate-400">Целых осталось</div>
+            <div class="font-display font-extrabold text-2xl text-slate-300">0</div>
+          </div>
+        `;
+
+      const slicedSvg = renderVisualUnitSVG({
+        skin: state.skin,
+        sliced: true,
+        justSliced: false,
+        b: prob.b,
+        removedSlices: removedSet,
+        size: 110,
+        uid: 'xray-' + Math.random().toString(36).slice(2, 6)
+      });
+
+      return `
+        ${wholeInfo}
+        ${slicedSvg}
+        <div class="text-xs sm:text-sm text-slate-300 max-w-[200px] text-left leading-snug">
+          Заняли <b>1 целое</b> → разрезали на <b class="text-amber-300">${prob.b}/${prob.b}</b>.<br>
+          Убрали <b class="text-rose-400">${prob.a}</b> из ${prob.b} долей → осталось <b class="text-cyan-300">${exact.num}/${exact.den}</b>!
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       7. УВЕДОМЛЕНИЯ (TOASTS), XP, РАНГИ И ДОСТИЖЕНИЯ
+       ========================================================================= */
+    function showToast(title, subtitle, icon = 'fa-wand-magic-sparkles', colorClass = 'from-cyan-500 to-blue-600') {
+      const container = document.getElementById('toastContainer');
+      const div = document.createElement('div');
+      div.className = `pointer-events-auto glass-panel rounded-2xl p-3 flex items-center gap-3 border-cyan-400/40 animate-pop shadow-2xl`;
+      div.innerHTML = `
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center text-white shrink-0 shadow">
+          <i class="fa-solid ${icon}"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="font-display font-bold text-sm text-white leading-tight">${title}</div>
+          <div class="text-xs text-slate-300 leading-tight mt-0.5">${subtitle}</div>
+        </div>
+      `;
+      container.appendChild(div);
+      setTimeout(() => {
+        div.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+        div.style.opacity = '0';
+        div.style.transform = 'translateX(20px)';
+        setTimeout(() => div.remove(), 360);
+      }, 3400);
+    }
+
+    function getRankInfo(xp) {
+      let current = RANKS[0];
+      let next = RANKS[1] || null;
+      for (let i = 0; i < RANKS.length; i++) {
+        if (xp >= RANKS[i].minXp) {
+          current = RANKS[i];
+          next = RANKS[i + 1] || null;
+        }
+      }
+      const pct = next
+        ? Math.min(100, Math.round(((xp - current.minXp) / (next.minXp - current.minXp)) * 100))
+        : 100;
+      return { current, next, pct };
+    }
+
+    function awardXp(amount, reason = '') {
+      if (amount <= 0) return;
+      const oldRank = getRankInfo(state.xp).current.title;
+      state.xp += amount;
+      const newRankInfo = getRankInfo(state.xp);
+      saveState();
+      updateHeaderUI();
+
+      if (newRankInfo.current.title !== oldRank) {
+        SoundFX.victory();
+        ParticleFX.confetti();
+        showToast(`Новое звание: ${newRankInfo.current.title}!`, 'Ты поднялся на новый уровень мастерства!', 'fa-crown', 'from-amber-400 to-orange-500');
+      } else if (reason) {
+        showToast(`+${amount} XP`, reason, 'fa-star', 'from-cyan-400 to-blue-600');
+      }
+    }
+
+    function unlockAchievement(id) {
+      if (state.achievements.includes(id)) return;
+      const ach = ACHIEVEMENTS.find(a => a.id === id);
+      if (!ach) return;
+      state.achievements.push(id);
+      saveState();
+      SoundFX.badge();
+      ParticleFX.burst(window.innerWidth - 120, window.innerHeight - 90, 26);
+      showToast(`Достижение: ${ach.title}`, ach.desc, ach.icon, ach.color);
+    }
+
+    function recordSolveResult(isCorrect, prob = null, wrongInputText = '', hint = '') {
+      state.totalAttempts++;
+      if (isCorrect) {
+        state.totalSolved++;
+        state.currentCombo++;
+        if (state.currentCombo > state.bestCombo) state.bestCombo = state.currentCombo;
+        if (state.currentCombo >= 5) unlockAchievement('combo_5');
+      } else {
+        state.currentCombo = 0;
+        if (prob) {
+          const key = formatPlainProblem(prob);
+          state.mistakes = state.mistakes.filter(m => formatPlainProblem(m.problem) !== key);
+          state.mistakes.unshift({
+            id: Date.now() + Math.random().toString(36).slice(2, 6),
+            problem: { ...prob },
+            wrongAnswerText: wrongInputText,
+            hint,
+            timestamp: Date.now()
+          });
+          if (state.mistakes.length > 20) state.mistakes.pop();
+        }
+      }
+      saveState();
+      updateHeaderUI();
+    }
+
+    /* =========================================================================
+       8. НАВИГАЦИЯ, СКИНЫ, ЗВУК И ОБНОВЛЕНИЕ ШАПКИ
+       ========================================================================= */
+    let activeTab = 'lab';
+
+    function switchTab(tab) {
+      SoundFX.click();
+      stopLabAutoAnimation();
+      clearCampaignTimers();
+      if (activeTab === 'blitz' && tab !== 'blitz' && blitzTimerId) {
+        stopBlitzEarly();
+      }
+
+      activeTab = tab;
+      document.querySelectorAll('.tab-section').forEach(s => s.classList.add('hidden'));
+      const target = document.getElementById(`tab-${tab}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        const isMe = btn.dataset.tab === tab;
+        btn.className = isMe
+          ? 'nav-tab flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm transition-all bg-gradient-to-r from-cyan-500/25 to-blue-600/25 text-cyan-300 border border-cyan-400/50 shadow-inner relative'
+          : 'nav-tab flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm transition-all text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent relative';
+      });
+
+      if (tab === 'lab') renderLab();
+      if (tab === 'campaign') {
+        if (!campaignState.inProgress) renderCampaignMap();
+      }
+      if (tab === 'blitz') {
+        document.getElementById('blitzBestRecordLabel').textContent = state.bestBlitzScore;
+      }
+      if (tab === 'profile') renderProfile();
+    }
+
+    function openReportSection() {
+      campaignState.inProgress = false;
+      switchTab('profile');
+      setTimeout(() => {
+        const card = document.getElementById('reportSectionCard');
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!state.studentName.trim()) {
+          const inp = document.getElementById('studentNameInput');
+          if (inp) inp.focus();
+        }
+      }, 100);
+    }
+
+    function setSkin(skin) {
+      state.skin = skin;
+      saveState();
+      SoundFX.click();
+      updateHeaderUI();
+      if (activeTab === 'lab') renderLab();
+      if (campaignState.inProgress && !document.getElementById('lvlXrayBox').classList.contains('hidden')) {
+        document.getElementById('lvlXrayContent').innerHTML = renderXrayDiagramHTML(campaignState.currentProblem);
+      }
+    }
+
+    function toggleSound() {
+      state.soundOn = !state.soundOn;
+      saveState();
+      if (state.soundOn) SoundFX.click();
+      updateHeaderUI();
+    }
+
+    function updateHeaderUI() {
+      const rankInfo = getRankInfo(state.xp);
+      document.getElementById('rankTitle').textContent = rankInfo.current.title;
+      document.getElementById('xpLabel').textContent = `${state.xp} XP`;
+      document.getElementById('xpProgressBar').style.width = `${rankInfo.pct}%`;
+      document.getElementById('rankIcon').innerHTML = `<i class="fa-solid ${rankInfo.current.icon}"></i>`;
+      document.getElementById('headerComboVal').textContent = `x${Math.max(1, state.currentCombo)}`;
+
+      document.querySelectorAll('.skin-btn').forEach(btn => {
+        const active = btn.dataset.skinBtn === state.skin;
+        btn.className = active
+          ? 'skin-btn px-2 py-1 rounded-lg text-sm transition-all bg-cyan-500/30 border border-cyan-400/60 scale-105'
+          : 'skin-btn px-2 py-1 rounded-lg text-sm transition-all opacity-60 hover:opacity-100';
+      });
+
+      const sBtn = document.getElementById('soundToggleBtn');
+      sBtn.innerHTML = state.soundOn
+        ? '<i class="fa-solid fa-volume-high"></i>'
+        : '<i class="fa-solid fa-volume-xmark text-slate-500"></i>';
+
+      const dot = document.getElementById('mistakesNavDot');
+      if (state.mistakes.length > 0) dot.classList.remove('hidden');
+      else dot.classList.add('hidden');
+    }
+
+    /* =========================================================================
+       9. РАЗДЕЛ 1: ИНТЕРАКТИВНАЯ ЛАБОРАТОРИЯ («РАЗРЕЖЬ И ПОЙМИ»)
+       ========================================================================= */
+    const GUIDED_MISSIONS = [
+      { N: 1, M: 0, a: 3, b: 8, title: 'Миссия 1: Вычитание из единицы' },
+      { N: 4, M: 0, a: 2, b: 5, title: 'Миссия 2: Займи у целого числа' },
+      { N: 5, M: 2, a: 3, b: 6, title: 'Миссия 3: Вычитание смешанного числа' }
+    ];
+
+    let labState = {
+      mode: 'guided',
+      missionIdx: 0,
+      problem: { N: 1, M: 0, a: 3, b: 8 },
+      phase: 0,
+      slicedUnitIdx: -1,
+      justSliced: false,
+      isAutoPlaying: false,
+      removedWholes: new Set(),
+      removedSlices: new Set(),
+      autoTimers: []
+    };
+
+    function setLabMode(mode) {
+      SoundFX.click();
+      stopLabAutoAnimation();
+      labState.mode = mode;
+
+      const gBtn = document.getElementById('labModeGuidedBtn');
+      const sBtn = document.getElementById('labModeSandboxBtn');
+      if (mode === 'guided') {
+        gBtn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-display font-bold transition-all bg-cyan-500 text-slate-950 shadow';
+        sBtn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-display font-bold transition-all text-slate-300 hover:text-white';
+        document.getElementById('labGuidedControls').classList.remove('hidden');
+        document.getElementById('labSandboxControls').classList.add('hidden');
+        selectGuidedMission(labState.missionIdx);
+      } else {
+        sBtn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-display font-bold transition-all bg-violet-500 text-white shadow';
+        gBtn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-display font-bold transition-all text-slate-300 hover:text-white';
+        document.getElementById('labGuidedControls').classList.add('hidden');
+        document.getElementById('labSandboxControls').classList.remove('hidden');
+        onSandboxSlider();
+      }
+    }
+
+    function selectGuidedMission(idx) {
+      stopLabAutoAnimation();
+      labState.missionIdx = idx;
+      const m = GUIDED_MISSIONS[idx];
+      labState.problem = { N: m.N, M: m.M, a: m.a, b: m.b };
+      resetLabWorkspace();
+    }
+
+    function onSandboxSlider() {
+      stopLabAutoAnimation();
+      const rN = document.getElementById('sbRangeN');
+      const rM = document.getElementById('sbRangeM');
+      const rA = document.getElementById('sbRangeA');
+      const rB = document.getElementById('sbRangeB');
+
+      const N = parseInt(rN.value, 10);
+      rM.max = Math.max(0, N - 1);
+      if (parseInt(rM.value, 10) >= N) rM.value = Math.max(0, N - 1);
+      const M = parseInt(rM.value, 10);
+
+      const b = parseInt(rB.value, 10);
+      rA.max = b - 1;
+      if (parseInt(rA.value, 10) >= b) rA.value = b - 1;
+      const a = parseInt(rA.value, 10);
+
+      document.getElementById('sbValN').textContent = N;
+      document.getElementById('sbValM').textContent = M;
+      document.getElementById('sbValA').textContent = a;
+      document.getElementById('sbValB').textContent = b;
+
+      labState.problem = { N, M, a, b };
+      resetLabWorkspace();
+    }
+
+    function randomizeSandbox() {
+      SoundFX.click();
+      const N = randInt(2, 7);
+      const M = Math.random() > 0.45 ? randInt(1, N - 1) : 0;
+      const b = randInt(3, 10);
+      const a = randInt(1, b - 1);
+
+      document.getElementById('sbRangeN').value = N;
+      document.getElementById('sbRangeM').max = N - 1;
+      document.getElementById('sbRangeM').value = M;
+      document.getElementById('sbRangeB').value = b;
+      document.getElementById('sbRangeA').max = b - 1;
+      document.getElementById('sbRangeA').value = a;
+      onSandboxSlider();
+    }
+
+    function resetLabWorkspace() {
+      stopLabAutoAnimation();
+      labState.phase = 0;
+      labState.slicedUnitIdx = -1;
+      labState.justSliced = false;
+      labState.removedWholes = new Set();
+      labState.removedSlices = new Set();
+      document.getElementById('labFeedbackBox').classList.add('hidden');
+      renderLab();
+    }
+
+    function renderLab() {
+      const p = labState.problem;
+      const exact = solveProblem(p);
+
+      document.querySelectorAll('.mission-pill').forEach((el, idx) => {
+        const active = labState.mode === 'guided' && labState.missionIdx === idx;
+        el.classList.toggle('border-cyan-400', active);
+        el.classList.toggle('ring-2', active);
+        el.classList.toggle('ring-cyan-400/40', active);
+        const chk = el.querySelector('.mission-check');
+        if (chk) chk.classList.toggle('hidden', !state.guidedDone[idx]);
+      });
+
+      const setStepStyle = (elId, stepNum) => {
+        const el = document.getElementById(elId);
+        if (labState.phase > stepNum) {
+          el.className = 'px-3 py-1.5 rounded-xl text-xs sm:text-sm font-display font-bold border bg-emerald-500/20 border-emerald-400/50 text-emerald-300';
+        } else if (labState.phase === stepNum) {
+          el.className = 'px-3 py-1.5 rounded-xl text-xs sm:text-sm font-display font-bold border bg-cyan-500/25 border-cyan-400 text-cyan-200 animate-pulse-glow';
+        } else {
+          el.className = 'px-3 py-1.5 rounded-xl text-xs sm:text-sm font-display font-bold border bg-slate-900/70 border-slate-700 text-slate-500';
+        }
+      };
+      setStepStyle('stepBadge1', 0);
+      setStepStyle('stepBadge2', 1);
+      setStepStyle('stepBadge3', 2);
+
+      const formulaEl = document.getElementById('labLiveFormula');
+      const borrowedPart = (p.N - 1 > 0)
+        ? htmlMixed(p.N - 1, p.b, p.b, 'text-emerald-300', 'text-cyan-300', 'text-amber-300')
+        : htmlFrac(p.b, p.b, 'text-cyan-300', 'text-amber-300');
+      const subPart = p.M > 0
+        ? htmlMixed(p.M, p.a, p.b, 'text-violet-300', 'text-rose-400', 'text-amber-300')
+        : htmlFrac(p.a, p.b, 'text-rose-400', 'text-amber-300');
+
+      if (labState.phase === 0) {
+        formulaEl.innerHTML = `${htmlProblem(p)} <span class="math-op">=</span> <span class="text-slate-500">?</span>`;
+      } else if (labState.phase === 1) {
+        formulaEl.innerHTML = `
+          ${htmlProblem(p)}
+          <span class="math-op">=</span>
+          <span class="px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-400/35">${borrowedPart}</span>
+          <span class="math-op">−</span>
+          ${subPart}
+        `;
+      } else if (labState.phase === 2) {
+        formulaEl.innerHTML = `
+          ${htmlProblem(p)}
+          <span class="math-op">=</span>
+          ${borrowedPart}
+          <span class="math-op">−</span>
+          ${subPart}
+          <span class="math-op">=</span>
+          <span class="text-emerald-400 animate-pulse">?</span>
+        `;
+      } else {
+        const ansHtml = exact.whole > 0
+          ? htmlMixed(exact.whole, exact.num, exact.den, 'text-emerald-300', 'text-emerald-300', 'text-emerald-300')
+          : htmlFrac(exact.num, exact.den, 'text-emerald-300', 'text-emerald-300');
+        const reducedExtra = exact.canReduce
+          ? `<span class="math-op">=</span> ${exact.whole > 0 ? htmlMixed(exact.whole, exact.rNum, exact.rDen, 'text-amber-300', 'text-amber-300', 'text-amber-300') : htmlFrac(exact.rNum, exact.rDen, 'text-amber-300', 'text-amber-300')}`
+          : '';
+        formulaEl.innerHTML = `${htmlProblem(p)} <span class="math-op">=</span> ${borrowedPart} <span class="math-op">−</span> ${subPart} <span class="math-op">=</span> ${ansHtml} ${reducedExtra}`;
+      }
+
+      const banner = document.getElementById('labInstructionBanner');
+      const countersBox = document.getElementById('labRemoveCounters');
+      const wCounter = document.getElementById('labCounterWholes');
+      const sCounter = document.getElementById('labCounterSlices');
+
+      const wholesLeftToRemove = Math.max(0, p.M - labState.removedWholes.size);
+      const slicesLeftToRemove = Math.max(0, p.a - labState.removedSlices.size);
+
+      if (labState.phase === 0) {
+        banner.innerHTML = `<i class="fa-solid fa-scissors text-cyan-400"></i> Шаг 1: Нажми на любую целую фигуру, чтобы занять 1 и разрезать её на ${p.b} равных долей!`;
+        countersBox.classList.add('hidden');
+      } else if (labState.phase === 1) {
+        const parts = [];
+        if (wholesLeftToRemove > 0) parts.push(`убери ${wholesLeftToRemove} цел.`);
+        if (slicesLeftToRemove > 0) parts.push(`кликни по ${slicesLeftToRemove} долям`);
+        banner.innerHTML = `<i class="fa-solid fa-hand-pointer text-rose-400"></i> Шаг 2: Вычитаем! ${parts.join(' и ')}.`;
+        countersBox.classList.remove('hidden');
+        if (p.M > 0) {
+          wCounter.classList.remove('hidden');
+          wCounter.innerHTML = wholesLeftToRemove > 0
+            ? `<i class="fa-solid fa-cube mr-1"></i>Убери целых: ещё <b>${wholesLeftToRemove}</b>`
+            : `<i class="fa-solid fa-check text-emerald-400 mr-1"></i>Целые убраны!`;
+        } else {
+          wCounter.classList.add('hidden');
+        }
+        sCounter.innerHTML = slicesLeftToRemove > 0
+          ? `<i class="fa-solid fa-chart-pie mr-1"></i>Убери долей: ещё <b>${slicesLeftToRemove}</b>`
+          : `<i class="fa-solid fa-check text-emerald-400 mr-1"></i>Доли убраны!`;
+      } else if (labState.phase === 2) {
+        banner.innerHTML = `<i class="fa-solid fa-pen-to-square text-emerald-400"></i> Шаг 3: Отлично! Теперь посмотри на экран и запиши, сколько осталось!`;
+        countersBox.classList.add('hidden');
+      } else {
+        banner.innerHTML = `<i class="fa-solid fa-trophy text-amber-400"></i> Великолепно! Ты наглядно решил пример! Попробуй следующую миссию или Песочницу.`;
+        countersBox.classList.add('hidden');
+      }
+
+      const arena = document.getElementById('labVisualArena');
+      let arenaHtml = '';
+      for (let i = 0; i < p.N; i++) {
+        const isSliced = i === labState.slicedUnitIdx;
+        const isRemoved = labState.removedWholes.has(i);
+        const canClickWhole = !labState.isAutoPlaying && (
+          (labState.phase === 0) ||
+          (labState.phase === 1 && !isSliced && !isRemoved && wholesLeftToRemove > 0)
+        );
+        const canClickSlice = !labState.isAutoPlaying && (
+          labState.phase === 1 && isSliced && slicesLeftToRemove > 0
+        );
+
+        arenaHtml += renderVisualUnitSVG({
+          skin: state.skin,
+          sliced: isSliced,
+          justSliced: isSliced && labState.justSliced,
+          b: p.b,
+          removedSlices: labState.removedSlices,
+          isRemovedWhole: isRemoved,
+          unitIdx: i,
+          interactiveWhole: canClickWhole,
+          interactiveSlice: canClickSlice,
+          size: p.N > 5 ? 114 : 132,
+          uid: `lab-${i}`
+        });
+      }
+      arena.innerHTML = arenaHtml;
+      labState.justSliced = false;
+
+      const ansPanel = document.getElementById('labAnswerPanel');
+      const checkBtn = document.getElementById('labCheckBtn');
+      const nextBtn = document.getElementById('labNextBtn');
+
+      if (labState.phase === 2) {
+        if (ansPanel.classList.contains('hidden')) {
+          ansPanel.classList.remove('hidden');
+          mountFractionInput('labFractionInputMount', 'lab-in', checkLabAnswer, true);
+        }
+        checkBtn.classList.remove('hidden');
+        nextBtn.classList.add('hidden');
+      } else if (labState.phase === 3) {
+        checkBtn.classList.add('hidden');
+        nextBtn.classList.remove('hidden');
+        nextBtn.innerHTML = (labState.mode === 'guided' && labState.missionIdx < GUIDED_MISSIONS.length - 1)
+          ? `Миссия ${labState.missionIdx + 2} <i class="fa-solid fa-arrow-right ml-1.5"></i>`
+          : `Новый пример <i class="fa-solid fa-dice ml-1.5"></i>`;
+      } else {
+        ansPanel.classList.add('hidden');
+      }
+    }
+
+    function onLabWholeClick(unitIdx) {
+      if (labState.isAutoPlaying) return;
+      const p = labState.problem;
+      if (labState.phase === 0) {
+        SoundFX.slice();
+        labState.slicedUnitIdx = unitIdx;
+        labState.justSliced = true;
+        labState.phase = 1;
+        unlockAchievement('first_slice');
+        renderLab();
+      } else if (labState.phase === 1) {
+        if (unitIdx === labState.slicedUnitIdx) return;
+        if (labState.removedWholes.has(unitIdx)) return;
+        if (labState.removedWholes.size < p.M) {
+          SoundFX.pick();
+          labState.removedWholes.add(unitIdx);
+          checkLabPhase1Complete();
+          renderLab();
+        }
+      }
+    }
+
+    function onLabSliceClick(sliceIdx, evt) {
+      if (labState.isAutoPlaying) return;
+      const p = labState.problem;
+      if (labState.phase !== 1) return;
+      if (labState.removedSlices.has(sliceIdx)) return;
+      if (labState.removedSlices.size < p.a) {
+        SoundFX.pick();
+        if (evt) ParticleFX.burst(evt.clientX, evt.clientY, 10, ['#f43f5e', '#fbbf24', '#22d3ee']);
+        labState.removedSlices.add(sliceIdx);
+        checkLabPhase1Complete();
+        renderLab();
+      }
+    }
+
+    function checkLabPhase1Complete() {
+      const p = labState.problem;
+      if (labState.removedWholes.size >= p.M && labState.removedSlices.size >= p.a) {
+        labState.phase = 2;
+        SoundFX.correct(1);
+      }
+    }
+
+    function checkLabAnswer() {
+      if (labState.phase !== 2) return;
+
+      const p = labState.problem;
+      const input = readFractionInput('lab-in');
+      const diag = diagnoseAnswer(p, input, false);
+      const fb = document.getElementById('labFeedbackBox');
+      fb.classList.remove('hidden');
+
+      if (diag.status === 'correct') {
+        SoundFX.victory();
+        ParticleFX.confetti();
+        labState.phase = 3;
+
+        document.querySelectorAll('#labFractionInputMount input').forEach(el => {
+          el.disabled = true;
+        });
+
+        fb.className = 'mt-4 rounded-xl p-3.5 text-sm sm:text-base font-bold bg-emerald-500/20 border border-emerald-400/50 text-emerald-200';
+        const exact = solveProblem(p);
+        let reduceNote = '';
+        if (exact.canReduce) {
+          reduceNote = diag.wasReduced
+            ? ` Отлично, что сразу сократил дробь до ${exact.rNum}/${exact.rDen}!`
+            : ` (Кстати, дробь ${exact.num}/${exact.den} можно ещё сократить до ${exact.rNum}/${exact.rDen}!)`;
+        }
+        const shownAnswer = diag.wasReduced
+          ? formatPlainAnswer(exact.whole, exact.rNum, exact.rDen)
+          : formatPlainAnswer(exact.whole, exact.num, exact.den);
+
+        fb.innerHTML = `<i class="fa-solid fa-circle-check mr-2 text-emerald-400"></i>Абсолютно верно! Ответ: ${shownAnswer}.${reduceNote}`;
+
+        if (diag.wasReduced) {
+          state.reducedCount++;
+          if (state.reducedCount >= 3) unlockAchievement('reducer_master');
+        }
+
+        if (labState.mode === 'guided') {
+          if (!state.guidedDone[labState.missionIdx]) {
+            state.guidedDone[labState.missionIdx] = true;
+            awardXp(30, 'Обучающая миссия пройдена!');
+          } else {
+            awardXp(10, 'Повторение в Лаборатории');
+          }
+        } else {
+          unlockAchievement('sandbox_explorer');
+          awardXp(15, 'Эксперимент в Песочнице!');
+        }
+        recordSolveResult(true);
+        renderLab();
+      } else {
+        SoundFX.wrong();
+        fb.className = 'mt-4 rounded-xl p-3.5 text-sm sm:text-base font-bold bg-rose-500/20 border border-rose-400/50 text-rose-200';
+        fb.innerHTML = `<i class="fa-solid fa-lightbulb mr-2 text-amber-300"></i>${diag.message}`;
+      }
+    }
+
+    function goToNextLabExample() {
+      SoundFX.click();
+      if (labState.mode === 'guided') {
+        if (labState.missionIdx < GUIDED_MISSIONS.length - 1) {
+          selectGuidedMission(labState.missionIdx + 1);
+        } else {
+          setLabMode('sandbox');
+          randomizeSandbox();
+        }
+      } else {
+        randomizeSandbox();
+      }
+    }
+
+    function stopLabAutoAnimation() {
+      labState.autoTimers.forEach(t => clearTimeout(t));
+      labState.autoTimers = [];
+      labState.isAutoPlaying = false;
+      const autoBtn = document.getElementById('labAutoAnimBtn');
+      if (autoBtn) autoBtn.disabled = false;
+    }
+
+    function runLabAutoAnimation() {
+      stopLabAutoAnimation();
+      const p = labState.problem;
+      labState.isAutoPlaying = true;
+      labState.phase = 0;
+      labState.slicedUnitIdx = -1;
+      labState.justSliced = false;
+      labState.removedWholes = new Set();
+      labState.removedSlices = new Set();
+      document.getElementById('labFeedbackBox').classList.add('hidden');
+      document.getElementById('labAutoAnimBtn').disabled = true;
+      renderLab();
+
+      let delay = 550;
+      labState.autoTimers.push(setTimeout(() => {
+        SoundFX.slice();
+        labState.slicedUnitIdx = p.N - 1;
+        labState.justSliced = true;
+        labState.phase = 1;
+        renderLab();
+      }, delay));
+      delay += 850;
+
+      for (let m = 0; m < p.M; m++) {
+        const idx = m;
+        labState.autoTimers.push(setTimeout(() => {
+          SoundFX.pick();
+          labState.removedWholes.add(idx);
+          renderLab();
+        }, delay));
+        delay += 460;
+      }
+
+      for (let s = 0; s < p.a; s++) {
+        const idx = s;
+        labState.autoTimers.push(setTimeout(() => {
+          SoundFX.pick();
+          labState.removedSlices.add(idx);
+          renderLab();
+        }, delay));
+        delay += 340;
+      }
+
+      labState.autoTimers.push(setTimeout(() => {
+        SoundFX.victory();
+        labState.isAutoPlaying = false;
+        labState.phase = 3;
+        document.getElementById('labAutoAnimBtn').disabled = false;
+        renderLab();
+        document.getElementById('labAnswerPanel').classList.add('hidden');
+        const exact = solveProblem(p);
+        showToast('Авто-разбор завершён!', `Ответ: ${formatPlainAnswer(exact.whole, exact.num, exact.den)}`, 'fa-wand-magic-sparkles', 'from-amber-400 to-orange-500');
+      }, delay + 300));
+    }
+
+    /* =========================================================================
+       10. ГЕНЕРАТОР ЗАДАЧ ПО УРОВНЯМ СЛОЖНОСТИ
+       ========================================================================= */
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateProblemForTier(tier) {
+      if (tier === 1) {
+        const b = randInt(3, 12);
+        const a = randInt(1, b - 1);
+        return { N: 1, M: 0, a, b };
+      }
+      if (tier === 2) {
+        const N = randInt(2, 12);
+        const b = randInt(3, 12);
+        const a = randInt(1, b - 1);
+        return { N, M: 0, a, b };
+      }
+      if (tier === 3) {
+        const N = randInt(3, 12);
+        const makeZeroWhole = Math.random() < 0.3;
+        const M = makeZeroWhole ? (N - 1) : randInt(1, N - 2);
+        const b = randInt(3, 11);
+        const a = randInt(1, b - 1);
+        return { N, M, a, b };
+      }
+      if (tier === 4) {
+        const reducibleDens = [4, 6, 8, 9, 10, 12, 14, 15, 16];
+        const b = reducibleDens[randInt(0, reducibleDens.length - 1)];
+        const validAs = [];
+        for (let a = 1; a < b; a++) {
+          if (gcd(b - a, b) > 1) validAs.push(a);
+        }
+        const a = validAs[randInt(0, validAs.length - 1)];
+        const N = randInt(2, 10);
+        const M = Math.random() < 0.45 && N > 2 ? randInt(1, N - 1) : 0;
+        return { N, M, a, b };
+      }
+      const subTier = [1, 2, 2, 3, 3, 4][randInt(0, 5)];
+      return generateProblemForTier(subTier);
+    }
+
+    /* =========================================================================
+       11. РАЗДЕЛ 2: КАМПАНИЯ (УРОВНИ 1–4 + БОСС-БАТТЛ 5)
+       ========================================================================= */
+    let campaignState = {
+      inProgress: false,
+      levelId: 1,
+      taskIdx: 0,
+      totalTasks: 5,
+      currentProblem: null,
+      solvedFirstTry: 0,
+      wrongOnCurrent: false,
+      streak: 0,
+      maxStreak: 0,
+      xrayLeft: 3,
+      waitingNext: false,
+      endTimerId: null,
+      bossHp: 100,
+      playerShields: 3,
+      bossCombo: 0,
+      bossCorrectCount: 0,
+      bossTotalAttempts: 0
+    };
+
+    function clearCampaignTimers() {
+      if (campaignState.endTimerId) {
+        clearTimeout(campaignState.endTimerId);
+        campaignState.endTimerId = null;
+      }
+    }
+
+    const BOSS_QUOTES_HIT = [
+      '«Ай! Кто научил тебя так быстро занимать единицу?!»',
+      '«Невозможно! Моя броня из знаменателей трещит!»',
+      '«Остановись! Прямое попадание в ядро!»',
+      '«Нет! Только не точное вычитание!»'
+    ];
+    const BOSS_QUOTES_MOCK = [
+      '«Ха-ха! Попался в классическую ловушку 5 класса!»',
+      '«Мой лазер сильнее! Перепроверь заём единицы!»',
+      '«Щит пробит! Думай внимательнее, пилот!»'
+    ];
+
+    function renderCampaignMap() {
+      document.getElementById('campaignMapView').classList.remove('hidden');
+      document.getElementById('campaignPlayView').classList.add('hidden');
+      document.getElementById('campaignBossView').classList.add('hidden');
+      document.getElementById('campaignResultView').classList.add('hidden');
+
+      const btn = document.getElementById('unlockAllBtn');
+      btn.innerHTML = state.allUnlocked
+        ? '<i class="fa-solid fa-lock-open mr-1.5 text-emerald-400"></i>Все уровни открыты'
+        : '<i class="fa-solid fa-key mr-1.5 text-amber-400"></i>Открыть все уровни';
+
+      const grid = document.getElementById('campaignLevelsGrid');
+      grid.innerHTML = CAMPAIGN_LEVELS.map(lvl => {
+        const prog = state.levels[lvl.id] || { unlocked: false, stars: 0 };
+        const isUnlocked = state.allUnlocked || prog.unlocked;
+        const starsHtml = [1, 2, 3].map(s =>
+          `<i class="fa-solid fa-star ${s <= prog.stars ? 'text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.7)]' : 'text-slate-700'}"></i>`
+        ).join('');
+
+        const borderCol = lvl.isBoss
+          ? 'border-rose-500/50 bg-gradient-to-br from-rose-950/60 via-slate-900/90 to-slate-950'
+          : (isUnlocked ? 'border-slate-700/80 hover:border-cyan-400/60' : 'border-slate-800/70 opacity-65');
+
+        return `
+          <div class="glass-card rounded-3xl p-5 flex flex-col justify-between gap-4 border-2 transition-all ${borderCol} ${lvl.isBoss ? 'md:col-span-2 lg:col-span-2' : ''}">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider bg-${lvl.accent}-500/20 text-${lvl.accent}-300 border border-${lvl.accent}-500/30">
+                  ${lvl.badge}
+                </span>
+                <div class="flex items-center gap-1 text-base">${starsHtml}</div>
+              </div>
+              <div class="flex items-start gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-${lvl.accent}-500/20 border border-${lvl.accent}-400/40 flex items-center justify-center text-${lvl.accent}-300 text-xl shrink-0">
+                  <i class="fa-solid ${isUnlocked ? lvl.icon : 'fa-lock'}"></i>
+                </div>
+                <div>
+                  <h3 class="font-display font-extrabold text-lg text-white leading-tight">${lvl.title}</h3>
+                  <p class="text-xs sm:text-sm text-slate-400 mt-1">${lvl.subtitle}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-slate-800/80">
+              <span class="text-xs font-bold text-slate-400">
+                <i class="fa-solid fa-star text-amber-400 mr-1"></i>+${lvl.xpReward} XP
+              </span>
+              ${isUnlocked ? `
+                <button onclick="startCampaignLevel(${lvl.id})" class="btn-game ${lvl.isBoss ? 'btn-rose' : 'btn-cyan'} px-5 py-2.5 rounded-xl text-white text-xs sm:text-sm font-bold">
+                  ${lvl.isBoss ? '<i class="fa-solid fa-dragon mr-1.5"></i>В БОЙ!' : (prog.stars > 0 ? 'Переиграть' : 'Играть')}
+                </button>
+              ` : `
+                <span class="text-xs font-bold text-slate-500"><i class="fa-solid fa-lock mr-1"></i>Пройди уровень ${lvl.id - 1}</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function unlockAllLevelsToggle() {
+      SoundFX.click();
+      state.allUnlocked = !state.allUnlocked;
+      saveState();
+      renderCampaignMap();
+      if (state.allUnlocked) {
+        showToast('Режим свободного доступа', 'Теперь можно запустить любой уровень и сразу сразиться с Боссом!', 'fa-key', 'from-amber-400 to-orange-500');
+      }
+    }
+
+    function startCampaignLevel(levelId) {
+      SoundFX.click();
+      clearCampaignTimers();
+      const lvl = CAMPAIGN_LEVELS.find(l => l.id === levelId);
+      if (!lvl) return;
+
+      campaignState = {
+        inProgress: true,
+        levelId,
+        taskIdx: 0,
+        totalTasks: lvl.tasksCount,
+        currentProblem: null,
+        solvedFirstTry: 0,
+        wrongOnCurrent: false,
+        streak: 0,
+        maxStreak: 0,
+        xrayLeft: 3,
+        waitingNext: false,
+        endTimerId: null,
+        bossHp: 100,
+        playerShields: 3,
+        bossCombo: 0,
+        bossCorrectCount: 0,
+        bossTotalAttempts: 0
+      };
+
+      document.getElementById('campaignMapView').classList.add('hidden');
+      document.getElementById('campaignResultView').classList.add('hidden');
+
+      if (lvl.isBoss) {
+        document.getElementById('campaignPlayView').classList.add('hidden');
+        document.getElementById('campaignBossView').classList.remove('hidden');
+        startBossBattleUI();
+      } else {
+        document.getElementById('campaignBossView').classList.add('hidden');
+        document.getElementById('campaignPlayView').classList.remove('hidden');
+        document.getElementById('lvlHeaderTitle').textContent = `Уровень ${lvl.id}: ${lvl.title}`;
+        mountFractionInput('lvlFractionInputMount', 'lvl-in', submitCampaignAnswer, lvl.id !== 1);
+        mountNumpad('lvlNumpadMount', 'lvl-in', submitCampaignAnswer, lvl.id !== 1);
+        loadCampaignTask();
+      }
+    }
+
+    function loadCampaignTask() {
+      const lvl = CAMPAIGN_LEVELS.find(l => l.id === campaignState.levelId);
+      campaignState.currentProblem = generateProblemForTier(lvl.id);
+      campaignState.wrongOnCurrent = false;
+      campaignState.waitingNext = false;
+
+      document.getElementById('lvlHeaderSub').textContent = `Задача ${campaignState.taskIdx + 1} из ${campaignState.totalTasks}`;
+      document.getElementById('lvlStreakVal').textContent = campaignState.streak;
+      document.getElementById('lvlXrayCount').textContent = campaignState.xrayLeft;
+      document.getElementById('lvlXrayBtn').disabled = campaignState.xrayLeft <= 0;
+      document.getElementById('lvlProgressBar').style.width = `${Math.round((campaignState.taskIdx / campaignState.totalTasks) * 100)}%`;
+
+      document.getElementById('lvlTaskBadge').innerHTML = lvl.requireReduced
+        ? '<span class="px-3 py-1 rounded-full text-xs font-extrabold bg-violet-500/20 text-violet-300 border border-violet-400/40">ВЫЧИСЛИ И СОКРАТИ ДРОБЬ</span>'
+        : '<span class="px-3 py-1 rounded-full text-xs font-extrabold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">ВЫЧИСЛИ</span>';
+
+      document.getElementById('lvlProblemDisplay').innerHTML = htmlProblem(campaignState.currentProblem);
+      document.getElementById('lvlXrayBox').classList.add('hidden');
+      document.getElementById('lvlFeedbackBox').classList.add('hidden');
+      document.getElementById('lvlSubmitBtn').classList.remove('hidden');
+      document.getElementById('lvlNextBtn').classList.add('hidden');
+
+      clearFractionInput('lvl-in', lvl.id !== 1);
+    }
+
+    function toggleCampaignXray() {
+      const box = document.getElementById('lvlXrayBox');
+      if (!box.classList.contains('hidden')) return;
+      if (campaignState.xrayLeft <= 0) return;
+      SoundFX.slice();
+      campaignState.xrayLeft--;
+      document.getElementById('lvlXrayCount').textContent = campaignState.xrayLeft;
+      document.getElementById('lvlXrayBtn').disabled = campaignState.xrayLeft <= 0;
+      document.getElementById('lvlXrayContent').innerHTML = renderXrayDiagramHTML(campaignState.currentProblem);
+      box.classList.remove('hidden');
+    }
+
+    function submitCampaignAnswer() {
+      if (campaignState.waitingNext) {
+        nextCampaignTask();
+        return;
+      }
+      const lvl = CAMPAIGN_LEVELS.find(l => l.id === campaignState.levelId);
+      const input = readFractionInput('lvl-in');
+      const diag = diagnoseAnswer(campaignState.currentProblem, input, !!lvl.requireReduced);
+      const fb = document.getElementById('lvlFeedbackBox');
+      fb.classList.remove('hidden');
+
+      if (diag.status === 'incomplete') {
+        SoundFX.click();
+        fb.className = 'w-full rounded-2xl p-4 text-sm sm:text-base font-bold bg-amber-500/15 border border-amber-400/40 text-amber-200 animate-pop';
+        fb.innerHTML = `<i class="fa-solid fa-circle-info mr-2"></i>${diag.message}`;
+        return;
+      }
+
+      if (diag.status === 'needs_reduction') {
+        SoundFX.click();
+        fb.className = 'w-full rounded-2xl p-4 text-sm sm:text-base font-bold bg-violet-500/20 border border-violet-400/50 text-violet-200 animate-pop';
+        fb.innerHTML = `<i class="fa-solid fa-compress mr-2 text-violet-300"></i>${diag.message}`;
+        return;
+      }
+
+      if (diag.status === 'correct') {
+        campaignState.waitingNext = true;
+        if (!campaignState.wrongOnCurrent) {
+          campaignState.solvedFirstTry++;
+          campaignState.streak++;
+          if (campaignState.streak > campaignState.maxStreak) campaignState.maxStreak = campaignState.streak;
+        }
+        if (diag.wasReduced) {
+          state.reducedCount++;
+          if (state.reducedCount >= 3) unlockAchievement('reducer_master');
+        }
+        recordSolveResult(true);
+        SoundFX.correct(campaignState.streak);
+        ParticleFX.burst(window.innerWidth / 2, window.innerHeight * 0.42, 22);
+
+        document.getElementById('lvlStreakVal').textContent = campaignState.streak;
+        fb.className = 'w-full rounded-2xl p-4 text-sm sm:text-base font-bold bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 animate-pop';
+        fb.innerHTML = `<i class="fa-solid fa-circle-check mr-2 text-emerald-400"></i>Точно в цель! ${campaignState.streak >= 3 ? `Серия x${campaignState.streak}! 🔥` : 'Отличная работа!'}`;
+        document.getElementById('lvlSubmitBtn').classList.add('hidden');
+        document.getElementById('lvlNextBtn').classList.remove('hidden');
+        document.getElementById('lvlNextBtn').focus();
+      } else {
+        campaignState.wrongOnCurrent = true;
+        campaignState.streak = 0;
+        document.getElementById('lvlStreakVal').textContent = 0;
+        const wrongText = formatPlainAnswer(parseInt(input.whole || '0', 10), input.num, input.den);
+        recordSolveResult(false, campaignState.currentProblem, wrongText, diag.message);
+        SoundFX.wrong();
+
+        fb.className = 'w-full rounded-2xl p-4 text-sm sm:text-base font-bold bg-rose-500/20 border border-rose-400/50 text-rose-200 animate-pop';
+        fb.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2 text-amber-300"></i>${diag.message}`;
+      }
+    }
+
+    function nextCampaignTask() {
+      SoundFX.click();
+      campaignState.taskIdx++;
+      if (campaignState.taskIdx >= campaignState.totalTasks) {
+        finishCampaignLevel(true);
+      } else {
+        loadCampaignTask();
+      }
+    }
+
+    /* === БОСС-БАТТЛ (УРОВЕНЬ 5) === */
+    function startBossBattleUI() {
+      document.getElementById('bossFeedbackBox').classList.add('hidden');
+      document.getElementById('bossQuoteBubble').textContent = '«Ха-ха! Пятиклассник, ты никогда не займёшь у меня единицу!»';
+      mountFractionInput('bossFractionInputMount', 'boss-in', submitBossAnswer, true);
+      mountNumpad('bossNumpadMount', 'boss-in', submitBossAnswer, true);
+      updateBossHUD();
+      nextBossProblem();
+    }
+
+    function nextBossProblem() {
+      campaignState.currentProblem = generateProblemForTier(5);
+      document.getElementById('bossProblemDisplay').innerHTML = htmlProblem(campaignState.currentProblem);
+      clearFractionInput('boss-in', true);
+    }
+
+    function updateBossHUD() {
+      document.getElementById('bossHpBar').style.width = `${Math.max(0, campaignState.bossHp)}%`;
+      document.getElementById('bossHpText').textContent = `${Math.max(0, campaignState.bossHp)} / 100 HP`;
+      const mult = campaignState.bossCombo >= 3 ? 3 : (campaignState.bossCombo >= 2 ? 2 : 1);
+      document.getElementById('bossComboBadge').textContent = `x${mult}`;
+
+      const shieldsEl = document.getElementById('bossPlayerShields');
+      shieldsEl.innerHTML = [1, 2, 3].map(i =>
+        i <= campaignState.playerShields
+          ? '<span class="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">🛡️</span>'
+          : '<span class="opacity-25 grayscale">🛡️</span>'
+      ).join('');
+    }
+
+    function spawnBossFloatingText(text, colorClass) {
+      const box = document.getElementById('bossVisualBox');
+      const div = document.createElement('div');
+      div.className = `damage-float text-2xl sm:text-3xl ${colorClass}`;
+      div.style.left = '50%';
+      div.style.top = '35%';
+      div.textContent = text;
+      box.appendChild(div);
+      setTimeout(() => div.remove(), 1050);
+    }
+
+    function submitBossAnswer() {
+      if (campaignState.bossHp <= 0 || campaignState.playerShields <= 0 || campaignState.endTimerId) return;
+      const input = readFractionInput('boss-in');
+      const diag = diagnoseAnswer(campaignState.currentProblem, input, false);
+      const fb = document.getElementById('bossFeedbackBox');
+      fb.classList.remove('hidden');
+
+      if (diag.status === 'incomplete') {
+        SoundFX.click();
+        fb.className = 'rounded-2xl p-3.5 text-sm font-bold bg-amber-500/15 border border-amber-400/40 text-amber-200';
+        fb.textContent = diag.message;
+        return;
+      }
+
+      campaignState.bossTotalAttempts++;
+      const arena = document.getElementById('bossArenaContainer');
+
+      if (diag.status === 'correct') {
+        campaignState.bossCorrectCount++;
+        campaignState.bossCombo++;
+        if (campaignState.bossCombo > campaignState.maxStreak) campaignState.maxStreak = campaignState.bossCombo;
+        if (diag.wasReduced) {
+          state.reducedCount++;
+          if (state.reducedCount >= 3) unlockAchievement('reducer_master');
+        }
+        recordSolveResult(true);
+
+        const mult = campaignState.bossCombo >= 3 ? 3 : (campaignState.bossCombo >= 2 ? 2 : 1);
+        const dmg = mult === 3 ? 30 : (mult === 2 ? 22 : 16);
+        campaignState.bossHp = Math.max(0, campaignState.bossHp - dmg);
+
+        SoundFX.bossHit();
+        const beam = document.getElementById('bossLaserBeam');
+        beam.classList.remove('hidden');
+        beam.style.animation = 'none';
+        void beam.offsetWidth;
+        beam.style.animation = 'beamShoot 0.42s ease-out forwards';
+        setTimeout(() => beam.classList.add('hidden'), 430);
+
+        arena.classList.remove('animate-shake');
+        void arena.offsetWidth;
+        arena.classList.add('animate-shake');
+
+        const rect = document.getElementById('bossVisualBox').getBoundingClientRect();
+        ParticleFX.burst(rect.left + rect.width / 2, rect.top + rect.height / 2, 34, ['#22d3ee', '#f59e0b', '#f43f5e', '#ffffff']);
+        spawnBossFloatingText(`-${dmg} HP${mult > 1 ? ' КРИТ!' : ''}`, mult > 1 ? 'text-amber-300' : 'text-cyan-300');
+
+        document.getElementById('bossQuoteBubble').textContent = BOSS_QUOTES_HIT[randInt(0, BOSS_QUOTES_HIT.length - 1)];
+        fb.className = 'rounded-2xl p-3.5 text-sm font-bold bg-emerald-500/20 border border-emerald-400/40 text-emerald-200';
+        fb.innerHTML = `<i class="fa-solid fa-bolt mr-1.5 text-amber-300"></i>Прямое попадание! Титан потерял ${dmg} HP!`;
+
+        updateBossHUD();
+
+        if (campaignState.bossHp <= 0) {
+          document.getElementById('bossQuoteBubble').textContent = '«НЕЕЕТ! Я побеждён мастером дробей...»';
+          campaignState.endTimerId = setTimeout(() => {
+            campaignState.endTimerId = null;
+            if (campaignState.inProgress) finishCampaignLevel(true);
+          }, 850);
+        } else {
+          nextBossProblem();
+        }
+      } else {
+        campaignState.bossCombo = 0;
+        campaignState.playerShields--;
+        const wrongText = formatPlainAnswer(parseInt(input.whole || '0', 10), input.num, input.den);
+        recordSolveResult(false, campaignState.currentProblem, wrongText, diag.message);
+
+        SoundFX.bossAttack();
+        arena.classList.remove('animate-shake');
+        void arena.offsetWidth;
+        arena.classList.add('animate-shake');
+        spawnBossFloatingText('УДАР БОССА!', 'text-rose-400');
+
+        document.getElementById('bossQuoteBubble').textContent = BOSS_QUOTES_MOCK[randInt(0, BOSS_QUOTES_MOCK.length - 1)];
+        fb.className = 'rounded-2xl p-3.5 text-sm font-bold bg-rose-500/20 border border-rose-400/50 text-rose-200';
+        fb.innerHTML = `<i class="fa-solid fa-shield-halved mr-1.5 text-rose-400"></i>Щит повреждён! ${diag.message}`;
+
+        updateBossHUD();
+
+        if (campaignState.playerShields <= 0) {
+          campaignState.endTimerId = setTimeout(() => {
+            campaignState.endTimerId = null;
+            if (campaignState.inProgress) finishCampaignLevel(false);
+          }, 1100);
+        }
+      }
+    }
+
+    function finishCampaignLevel(won) {
+      clearCampaignTimers();
+      const lvl = CAMPAIGN_LEVELS.find(l => l.id === campaignState.levelId);
+      document.getElementById('campaignPlayView').classList.add('hidden');
+      document.getElementById('campaignBossView').classList.add('hidden');
+      document.getElementById('campaignResultView').classList.remove('hidden');
+
+      let acc = 0;
+      let stars = 0;
+      if (lvl.isBoss) {
+        acc = campaignState.bossTotalAttempts > 0
+          ? Math.round((campaignState.bossCorrectCount / campaignState.bossTotalAttempts) * 100)
+          : 0;
+        if (won) {
+          stars = campaignState.playerShields === 3 ? 3 : (campaignState.playerShields === 2 ? 2 : 1);
+        }
+      } else {
+        acc = Math.round((campaignState.solvedFirstTry / campaignState.totalTasks) * 100);
+        stars = acc === 100 ? 3 : (acc >= 75 ? 2 : 1);
+      }
+
+      const xpEarned = won ? Math.round(lvl.xpReward * (0.5 + stars * 0.2)) : 20;
+
+      if (won) {
+        SoundFX.victory();
+        ParticleFX.confetti();
+        const prog = state.levels[lvl.id];
+        prog.stars = Math.max(prog.stars, stars);
+        prog.bestAcc = Math.max(prog.bestAcc, acc);
+        if (state.levels[lvl.id + 1]) state.levels[lvl.id + 1].unlocked = true;
+        if (stars === 3) unlockAchievement('flawless_level');
+        if (lvl.isBoss) unlockAchievement('titan_slayer');
+        awardXp(xpEarned, `Победа: ${lvl.title}`);
+      } else {
+        SoundFX.wrong();
+        awardXp(xpEarned, 'Опыт за смелый бой');
+      }
+      saveState();
+
+      document.getElementById('resIconBox').innerHTML = won
+        ? (lvl.isBoss ? '<i class="fa-solid fa-crown"></i>' : '<i class="fa-solid fa-trophy"></i>')
+        : '<i class="fa-solid fa-shield-halved"></i>';
+      document.getElementById('resIconBox').className = won
+        ? 'w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-4xl text-slate-950 shadow-xl'
+        : 'w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-rose-500 to-slate-700 flex items-center justify-center text-4xl text-white shadow-xl';
+
+      document.getElementById('resTitle').textContent = won
+        ? (lvl.isBoss ? 'ДРОБНЫЙ ТИТАН ПОВЕРЖЕН!' : `Уровень ${lvl.id} пройден!`)
+        : 'Щиты разряжены!';
+
+      document.getElementById('resSubtitle').textContent = won
+        ? (stars === 3 ? 'Идеальное прохождение! Ни одной ошибки — настоящая точность инженера!' : 'Отличный результат! Можно двигаться дальше или улучшить звёзды.')
+        : 'Титан оказался крепким орешком! Загляни в Журнал ошибок и попробуй реванш!';
+
+      document.getElementById('resStarsRow').innerHTML = [1, 2, 3].map(s =>
+        `<i class="fa-solid fa-star ${s <= stars ? 'text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.85)]' : 'text-slate-700'}"></i>`
+      ).join('');
+
+      document.getElementById('resAccVal').textContent = `${acc}%`;
+      document.getElementById('resXpVal').textContent = `+${xpEarned}`;
+      document.getElementById('resComboVal').textContent = `x${Math.max(1, campaignState.maxStreak)}`;
+
+      const nextBtn = document.getElementById('resNextLevelBtn');
+      if (won && lvl.id < 5) nextBtn.classList.remove('hidden');
+      else nextBtn.classList.add('hidden');
+    }
+
+    function exitCampaignLevel() {
+      SoundFX.click();
+      clearCampaignTimers();
+      campaignState.inProgress = false;
+      renderCampaignMap();
+    }
+
+    function replayCurrentLevel() {
+      startCampaignLevel(campaignState.levelId);
+    }
+
+    function startNextUnlockedLevel() {
+      if (campaignState.levelId < 5) startCampaignLevel(campaignState.levelId + 1);
+    }
+
+    /* =========================================================================
+       12. РАЗДЕЛ 3: БЛИЦ-АРКАДА (60 СЕКУНД)
+       ========================================================================= */
+    let blitzState = {
+      diff: 'basic',
+      timeLeft: 60,
+      maxTime: 60,
+      score: 0,
+      solved: 0,
+      attempts: 0,
+      streak: 0,
+      problem: null
+    };
+    let blitzTimerId = null;
+
+    function setBlitzDifficulty(diff) {
+      SoundFX.click();
+      blitzState.diff = diff;
+      document.querySelectorAll('.blitz-diff-btn').forEach(btn => {
+        const active = btn.dataset.blitzDiff === diff;
+        btn.classList.toggle('border-amber-400', active);
+        btn.classList.toggle('bg-amber-500/10', active);
+        btn.classList.toggle('border-slate-700/80', !active);
+      });
+    }
+
+    function showBlitzStart() {
+      stopBlitzTimer();
+      document.getElementById('blitzStartView').classList.remove('hidden');
+      document.getElementById('blitzPlayView').classList.add('hidden');
+      document.getElementById('blitzEndView').classList.add('hidden');
+      document.getElementById('blitzBestRecordLabel').textContent = state.bestBlitzScore;
+    }
+
+    function startBlitzGame() {
+      SoundFX.click();
+      stopBlitzTimer();
+      blitzState = {
+        ...blitzState,
+        timeLeft: 60,
+        maxTime: 60,
+        score: 0,
+        solved: 0,
+        attempts: 0,
+        streak: 0,
+        problem: null
+      };
+
+      document.getElementById('blitzStartView').classList.add('hidden');
+      document.getElementById('blitzEndView').classList.add('hidden');
+      document.getElementById('blitzPlayView').classList.remove('hidden');
+      document.getElementById('blitzQuickFeedback').textContent = '';
+
+      mountFractionInput('blitzFractionInputMount', 'blitz-in', submitBlitzAnswer, true);
+      mountNumpad('blitzNumpadMount', 'blitz-in', submitBlitzAnswer, true);
+      nextBlitzProblem();
+      updateBlitzHUD();
+
+      blitzTimerId = setInterval(() => {
+        blitzState.timeLeft--;
+        updateBlitzHUD();
+        if (blitzState.timeLeft <= 0) {
+          endBlitzGame();
+        }
+      }, 1000);
+    }
+
+    function stopBlitzTimer() {
+      if (blitzTimerId) {
+        clearInterval(blitzTimerId);
+        blitzTimerId = null;
+      }
+    }
+
+    function stopBlitzEarly() {
+      stopBlitzTimer();
+      showBlitzStart();
+    }
+
+    function nextBlitzProblem() {
+      const tier = blitzState.diff === 'basic'
+        ? (Math.random() < 0.25 ? 1 : 2)
+        : (Math.random() < 0.5 ? 2 : 3);
+      blitzState.problem = generateProblemForTier(tier);
+      document.getElementById('blitzProblemDisplay').innerHTML = htmlProblem(blitzState.problem);
+      clearFractionInput('blitz-in', true);
+    }
+
+    function updateBlitzHUD() {
+      document.getElementById('blitzScoreVal').textContent = blitzState.score;
+      const tEl = document.getElementById('blitzTimerVal');
+      tEl.textContent = blitzState.timeLeft;
+      tEl.className = blitzState.timeLeft <= 10
+        ? 'font-display font-black text-3xl sm:text-4xl text-rose-400 animate-pulse leading-none'
+        : 'font-display font-black text-3xl sm:text-4xl text-white leading-none';
+
+      const pct = Math.min(100, Math.round((blitzState.timeLeft / blitzState.maxTime) * 100));
+      const bar = document.getElementById('blitzTimerBar');
+      bar.style.width = `${pct}%`;
+      bar.className = blitzState.timeLeft <= 10
+        ? 'h-full bg-gradient-to-r from-rose-500 to-amber-500 transition-all duration-300'
+        : 'h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-300';
+
+      const mult = Math.min(4, 1 + Math.floor(blitzState.streak / 2));
+      document.getElementById('blitzComboVal').textContent = `x${mult}`;
+    }
+
+    function submitBlitzAnswer() {
+      if (!blitzTimerId) return;
+      const input = readFractionInput('blitz-in');
+      const diag = diagnoseAnswer(blitzState.problem, input, false);
+      const fb = document.getElementById('blitzQuickFeedback');
+
+      if (diag.status === 'incomplete') {
+        SoundFX.click();
+        fb.className = 'min-h-[28px] text-sm font-extrabold text-amber-300';
+        fb.textContent = 'Введи числитель и знаменатель!';
+        return;
+      }
+
+      blitzState.attempts++;
+      if (diag.status === 'correct') {
+        blitzState.solved++;
+        blitzState.streak++;
+        if (diag.wasReduced) {
+          state.reducedCount++;
+          if (state.reducedCount >= 3) unlockAchievement('reducer_master');
+        }
+        const mult = Math.min(4, 1 + Math.floor(blitzState.streak / 2));
+        const base = blitzState.diff === 'pro' ? 45 : 30;
+        const pts = base * mult;
+        blitzState.score += pts;
+
+        SoundFX.correct(blitzState.streak);
+        recordSolveResult(true);
+
+        let bonusMsg = `+${pts} очков!`;
+        if (blitzState.streak % 3 === 0) {
+          blitzState.timeLeft = Math.min(90, blitzState.timeLeft + 3);
+          bonusMsg += ' (+3 сек за серию! ⚡)';
+          const pop = document.getElementById('blitzTimeBonusPop');
+          pop.classList.remove('hidden');
+          setTimeout(() => pop.classList.add('hidden'), 1100);
+        }
+
+        fb.className = 'min-h-[28px] text-sm font-extrabold text-emerald-400';
+        fb.textContent = bonusMsg;
+        ParticleFX.burst(window.innerWidth / 2, window.innerHeight * 0.35, 16);
+        updateBlitzHUD();
+        nextBlitzProblem();
+      } else {
+        blitzState.streak = 0;
+        SoundFX.wrong();
+        const wrongText = formatPlainAnswer(parseInt(input.whole || '0', 10), input.num, input.den);
+        recordSolveResult(false, blitzState.problem, wrongText, diag.message);
+        fb.className = 'min-h-[28px] text-sm font-extrabold text-rose-300';
+        fb.textContent = diag.message;
+        updateBlitzHUD();
+      }
+    }
+
+    function skipBlitzProblem() {
+      SoundFX.click();
+      blitzState.streak = 0;
+      document.getElementById('blitzQuickFeedback').textContent = 'Пример пропущен';
+      updateBlitzHUD();
+      nextBlitzProblem();
+    }
+
+    function endBlitzGame() {
+      stopBlitzTimer();
+      document.getElementById('blitzPlayView').classList.add('hidden');
+      document.getElementById('blitzEndView').classList.remove('hidden');
+
+      const acc = blitzState.attempts > 0 ? Math.round((blitzState.solved / blitzState.attempts) * 100) : 0;
+      const xpEarned = Math.min(180, Math.max(15, Math.round(blitzState.score / 5)));
+
+      let isNewRecord = false;
+      if (blitzState.score > state.bestBlitzScore) {
+        state.bestBlitzScore = blitzState.score;
+        isNewRecord = true;
+      }
+      if (blitzState.score >= 350) unlockAchievement('blitz_sprinter');
+      saveState();
+
+      SoundFX.victory();
+      if (isNewRecord || blitzState.score >= 250) ParticleFX.confetti();
+      awardXp(xpEarned, 'Блиц-Аркада завершена!');
+
+      document.getElementById('blitzNewRecordTag').classList.toggle('hidden', !isNewRecord);
+      document.getElementById('blitzEndScore').textContent = blitzState.score;
+      document.getElementById('blitzEndSolved').textContent = blitzState.solved;
+      document.getElementById('blitzEndAcc').textContent = `${acc}%`;
+      document.getElementById('blitzEndXp').textContent = `+${xpEarned}`;
+    }
+
+    /* =========================================================================
+       13. ОТПРАВКА РЕЗУЛЬТАТОВ УЧИТЕЛЮ, ЗАЩИТНЫЙ КОД И PNG-КАРТОЧКА
+       ========================================================================= */
+    function computeReportCode(d) {
+      const payload = [
+        (d.name || '').trim().toLowerCase(),
+        (d.cls || '').trim().toLowerCase(),
+        d.xp,
+        d.solved,
+        d.acc,
+        d.bestCombo,
+        d.blitz,
+        `${d.s1}${d.s2}${d.s3}${d.s4}${d.s5}`,
+        d.ach,
+        d.mistakes,
+        REPORT_SECRET_SALT
+      ].join('|');
+
+      // Детерминированный FNV-1a 32-bit хеш
+      let h = 0x811c9dc5;
+      for (let i = 0; i < payload.length; i++) {
+        h ^= payload.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+      }
+      const codePart = (h >>> 0).toString(36).toUpperCase().padStart(6, '0').slice(0, 6);
+      return `R5-${codePart}`;
+    }
+
+    function getCurrentReportData() {
+      const rankInfo = getRankInfo(state.xp);
+      const acc = state.totalAttempts > 0 ? Math.round((state.totalSolved / state.totalAttempts) * 100) : 100;
+      const s1 = state.levels[1]?.stars || 0;
+      const s2 = state.levels[2]?.stars || 0;
+      const s3 = state.levels[3]?.stars || 0;
+      const s4 = state.levels[4]?.stars || 0;
+      const s5 = state.levels[5]?.stars || 0;
+      const data = {
+        name: (state.studentName || '').trim() || 'Ученик не указан',
+        cls: (state.studentClass || '').trim() || '—',
+        rank: rankInfo.current.title,
+        xp: state.xp,
+        solved: state.totalSolved,
+        acc,
+        bestCombo: state.bestCombo,
+        blitz: state.bestBlitzScore,
+        s1, s2, s3, s4, s5,
+        starsTotal: s1 + s2 + s3 + s4 + s5,
+        ach: state.achievements.length,
+        mistakes: state.mistakes.length
+      };
+      data.code = computeReportCode(data);
+      return data;
+    }
+
+    function buildReportText(d) {
+      return [
+        `🚀 ДРОБНЫЙ РЕАКТОР 5.0 — ОТЧЁТ`,
+        `👤 Ученик: ${d.name} | Класс: ${d.cls}`,
+        `🏅 Звание: ${d.rank} | ${d.xp} XP`,
+        `✅ Решено: ${d.solved} | Точность: ${d.acc}% | Комбо: x${d.bestCombo}`,
+        `⚡ Рекорд Блица: ${d.blitz}`,
+        `🗺 Кампания: ${d.starsTotal}/15★ [1:${d.s1} 2:${d.s2} 3:${d.s3} 4:${d.s4} Б:${d.s5}]`,
+        `🏆 Достижения: ${d.ach}/8 | Ошибок: ${d.mistakes}`,
+        `🔐 Код: ${d.code}`
+      ].join('\n');
+    }
+
+    function onStudentIdentityChange() {
+      const nameEl = document.getElementById('studentNameInput');
+      const clsEl = document.getElementById('studentClassInput');
+      nameEl.classList.remove('input-error');
+      clsEl.classList.remove('input-error');
+      state.studentName = nameEl.value.replace(/\|/g, ' ').slice(0, 40);
+      state.studentClass = clsEl.value.replace(/\|/g, ' ').slice(0, 12);
+      saveState();
+      updateReportPreview();
+    }
+
+    function updateReportPreview() {
+      const data = getCurrentReportData();
+      const textEl = document.getElementById('reportPreviewText');
+      const codeEl = document.getElementById('reportCodeBadge');
+      if (textEl) textEl.textContent = buildReportText(data);
+      if (codeEl) codeEl.textContent = data.code;
+    }
+
+    function validateStudentIdentity() {
+      const nameEl = document.getElementById('studentNameInput');
+      const clsEl = document.getElementById('studentClassInput');
+      const nameOk = state.studentName.trim().length >= 2;
+      const clsOk = state.studentClass.trim().length >= 1;
+
+      if (!nameOk || !clsOk) {
+        SoundFX.wrong();
+        if (!nameOk) nameEl.classList.add('input-error');
+        if (!clsOk) clsEl.classList.add('input-error');
+        showToast('Заполни имя и класс', 'Чтобы учитель знал, чья это работа, укажи имя и класс.', 'fa-user-pen', 'from-rose-500 to-orange-500');
+        (!nameOk ? nameEl : clsEl).focus();
+        return false;
+      }
+      return true;
+    }
+
+    function sendReportWhatsApp() {
+      if (!validateStudentIdentity()) return;
+      SoundFX.click();
+      const text = buildReportText(getCurrentReportData());
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function sendReportTelegram() {
+      if (!validateStudentIdentity()) return;
+      SoundFX.click();
+      const text = buildReportText(getCurrentReportData());
+      const url = `https://t.me/share/url?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function copyReportText() {
+      if (!validateStudentIdentity()) return;
+      SoundFX.click();
+      const text = buildReportText(getCurrentReportData());
+
+      const fallbackCopy = () => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('Отчёт скопирован!', 'Теперь просто вставь его в чат учителю.', 'fa-copy', 'from-emerald-400 to-teal-500');
+        } catch (e) {
+          showToast('Выдели текст вручную', 'Скопируй отчёт из поля предпросмотра выше.', 'fa-circle-info', 'from-amber-400 to-orange-500');
+        }
+        ta.remove();
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('Отчёт скопирован!', 'Теперь просто вставь его в чат учителю.', 'fa-copy', 'from-emerald-400 to-teal-500'))
+          .catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+    }
+
+    function drawRoundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function downloadAchievementCard() {
+      if (!validateStudentIdentity()) return;
+      SoundFX.victory();
+
+      const d = getCurrentReportData();
+      const canvas = document.createElement('canvas');
+      canvas.width = 1040;
+      canvas.height = 640;
+      const ctx = canvas.getContext('2d');
+
+      // Космический фон
+      const bgGrad = ctx.createLinearGradient(0, 0, 1040, 640);
+      bgGrad.addColorStop(0, '#090e1f');
+      bgGrad.addColorStop(0.55, '#111936');
+      bgGrad.addColorStop(1, '#0b1020');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 1040, 640);
+
+      // Неоновые свечения на фоне
+      const glow1 = ctx.createRadialGradient(160, 110, 10, 160, 110, 320);
+      glow1.addColorStop(0, 'rgba(34, 211, 238, 0.22)');
+      glow1.addColorStop(1, 'rgba(34, 211, 238, 0)');
+      ctx.fillStyle = glow1;
+      ctx.fillRect(0, 0, 1040, 640);
+
+      const glow2 = ctx.createRadialGradient(890, 520, 10, 890, 520, 340);
+      glow2.addColorStop(0, 'rgba(139, 92, 246, 0.24)');
+      glow2.addColorStop(1, 'rgba(139, 92, 246, 0)');
+      ctx.fillStyle = glow2;
+      ctx.fillRect(0, 0, 1040, 640);
+
+      // Внешняя стеклянная рамка
+      drawRoundRect(ctx, 26, 26, 988, 588, 30);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.45)';
+      ctx.stroke();
+
+      // Шапка карточки
+      ctx.fillStyle = '#22d3ee';
+      ctx.font = '800 18px Rubik, sans-serif';
+      ctx.fillText('ДРОБНЫЙ РЕАКТОР 5.0 · КАРТОЧКА ДОСТИЖЕНИЙ', 62, 74);
+
+      const nowStr = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '700 17px Nunito, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`Дата: ${nowStr}`, 978, 74);
+      ctx.textAlign = 'left';
+
+      // Разделительная линия
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(62, 94);
+      ctx.lineTo(978, 94);
+      ctx.stroke();
+
+      // Имя ученика, класс и звание
+      const displayName = d.name.length > 26 ? d.name.slice(0, 25) + '…' : d.name;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 40px Rubik, sans-serif';
+      ctx.fillText(displayName, 62, 152);
+
+      // Бейдж класса
+      const classLabel = `Класс: ${d.cls}`;
+      ctx.font = '800 20px Rubik, sans-serif';
+      const clsW = Math.max(120, ctx.measureText(classLabel).width + 36);
+      drawRoundRect(ctx, 62, 170, clsW, 38, 12);
+      ctx.fillStyle = 'rgba(34, 211, 238, 0.16)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = '#67e8f9';
+      ctx.fillText(classLabel, 80, 196);
+
+      // Бейдж звания и XP справа
+      drawRoundRect(ctx, 680, 114, 298, 96, 20);
+      const rankGrad = ctx.createLinearGradient(680, 114, 978, 210);
+      rankGrad.addColorStop(0, 'rgba(245, 158, 11, 0.22)');
+      rankGrad.addColorStop(1, 'rgba(234, 88, 12, 0.14)');
+      ctx.fillStyle = rankGrad;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.55)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fcd34d';
+      ctx.font = '700 14px Nunito, sans-serif';
+      ctx.fillText('ЗВАНИЕ ПИЛОТА', 704, 142);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 24px Rubik, sans-serif';
+      ctx.fillText(d.rank, 704, 173);
+      ctx.fillStyle = '#22d3ee';
+      ctx.font = '800 18px Rubik, sans-serif';
+      ctx.fillText(`${d.xp} XP`, 704, 199);
+
+      // 4 карточки основной статистики
+      const stats = [
+        { label: 'РЕШЕНО ЗАДАЧ', val: String(d.solved), color: '#34d399' },
+        { label: 'ТОЧНОСТЬ', val: `${d.acc}%`, color: '#a78bfa' },
+        { label: 'ЛУЧШЕЕ КОМБО', val: `x${d.bestCombo}`, color: '#fbbf24' },
+        { label: 'РЕКОРД БЛИЦА', val: String(d.blitz), color: '#fb7185' }
+      ];
+
+      stats.forEach((st, idx) => {
+        const x = 62 + idx * 234;
+        const y = 236;
+        drawRoundRect(ctx, x, y, 214, 108, 20);
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.72)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '800 13px Nunito, sans-serif';
+        ctx.fillText(st.label, x + 20, y + 34);
+
+        ctx.fillStyle = st.color;
+        ctx.font = '900 38px Rubik, sans-serif';
+        ctx.fillText(st.val, x + 20, y + 84);
+      });
+
+      // Секция Кампании (5 уровней + звёзды)
+      drawRoundRect(ctx, 62, 368, 916, 134, 22);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+      ctx.stroke();
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '800 16px Rubik, sans-serif';
+      ctx.fillText(`КАМПАНИЯ «ПУТЬ МАСТЕРА» · ${d.starsTotal} / 15 ★`, 86, 400);
+
+      const bossDone = d.s5 > 0;
+      ctx.textAlign = 'right';
+      ctx.fillStyle = bossDone ? '#34d399' : '#94a3b8';
+      ctx.font = '800 15px Nunito, sans-serif';
+      ctx.fillText(bossDone ? '✓ Дробный Титан повержен!' : 'Босс пока не побеждён', 954, 400);
+      ctx.textAlign = 'left';
+
+      const lvlStars = [
+        { name: 'Сектор 1', s: d.s1 },
+        { name: 'Сектор 2', s: d.s2 },
+        { name: 'Сектор 3', s: d.s3 },
+        { name: 'Сектор 4', s: d.s4 },
+        { name: 'БОСС', s: d.s5, boss: true }
+      ];
+
+      lvlStars.forEach((lv, idx) => {
+        const bx = 86 + idx * 176;
+        const by = 416;
+        drawRoundRect(ctx, bx, by, 160, 68, 14);
+        ctx.fillStyle = lv.boss ? 'rgba(159, 18, 57, 0.28)' : 'rgba(30, 41, 59, 0.8)';
+        ctx.fill();
+        ctx.strokeStyle = lv.s > 0 ? 'rgba(251, 191, 36, 0.5)' : 'rgba(148, 163, 184, 0.18)';
+        ctx.stroke();
+
+        ctx.fillStyle = lv.boss ? '#fda4af' : '#cbd5e1';
+        ctx.font = '800 14px Rubik, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(lv.name, bx + 80, by + 25);
+
+        ctx.font = '900 24px Rubik, sans-serif';
+        for (let k = 0; k < 3; k++) {
+          ctx.fillStyle = k < lv.s ? '#fbbf24' : '#334155';
+          ctx.fillText('★', bx + 46 + k * 34, by + 56);
+        }
+        ctx.textAlign = 'left';
+      });
+
+      // Нижняя строка: Достижения, Ошибки, Код проверки
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '800 20px Rubik, sans-serif';
+      ctx.fillText(`🏆 Достижения: ${d.ach} / 8`, 62, 560);
+
+      ctx.fillStyle = d.mistakes === 0 ? '#34d399' : '#fda4af';
+      ctx.fillText(`🛠 Ошибок в журнале: ${d.mistakes}`, 340, 560);
+
+      drawRoundRect(ctx, 712, 526, 266, 54, 14);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.16)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(52, 211, 153, 0.55)';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.fillStyle = '#6ee7b7';
+      ctx.font = '800 18px Rubik, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`КОД: ${d.code}`, 845, 560);
+      ctx.textAlign = 'left';
+
+      // Скачивание файла PNG
+      const safeName = d.name.replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]/g, '_').slice(0, 24);
+      const link = document.createElement('a');
+      link.download = `Reaktor5_${safeName}_${d.cls.replace(/\s+/g, '')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      ParticleFX.confetti();
+      showToast('Карточка PNG сохранена!', 'Теперь прикрепи картинку и отправь учителю.', 'fa-image', 'from-amber-400 to-orange-500');
+    }
+
+    function toggleTeacherVerifier() {
+      SoundFX.click();
+      const box = document.getElementById('teacherVerifierBox');
+      const arrow = document.getElementById('teacherVerifierArrow');
+      box.classList.toggle('hidden');
+      arrow.style.transform = box.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function verifyStudentReport() {
+      SoundFX.click();
+      const raw = (document.getElementById('teacherVerifyInput').value || '').trim();
+      const resEl = document.getElementById('teacherVerifyResult');
+      resEl.classList.remove('hidden');
+
+      const mUser = raw.match(/Ученик:\s*(.+?)\s*\|\s*Класс:\s*([^\n\r]+)/);
+      const mXp = raw.match(/Звание:.*?\|\s*(\d+)\s*XP/);
+      const mStats = raw.match(/Решено:\s*(\d+)\s*\|\s*Точность:\s*(\d+)%\s*\|\s*Комбо:\s*x(\d+)/);
+      const mBlitz = raw.match(/Рекорд Блица:\s*(\d+)/);
+      const mStars = raw.match(/\[1:(\d)\s+2:(\d)\s+3:(\d)\s+4:(\d)\s+Б:(\d)\]/);
+      const mAch = raw.match(/Достижения:\s*(\d+)\/8\s*\|\s*Ошибок:\s*(\d+)/);
+      const mCode = raw.match(/Код:\s*(R5-[A-Z0-9]{6})/);
+
+      if (!mUser || !mXp || !mStats || !mBlitz || !mStars || !mAch || !mCode) {
+        SoundFX.wrong();
+        resEl.className = 'text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200';
+        resEl.textContent = 'Не удалось распознать формат отчёта. Вставьте текст целиком от первой до последней строки.';
+        return;
+      }
+
+      const parsed = {
+        name: mUser[1].trim(),
+        cls: mUser[2].trim(),
+        xp: parseInt(mXp[1], 10),
+        solved: parseInt(mStats[1], 10),
+        acc: parseInt(mStats[2], 10),
+        bestCombo: parseInt(mStats[3], 10),
+        blitz: parseInt(mBlitz[1], 10),
+        s1: parseInt(mStars[1], 10),
+        s2: parseInt(mStars[2], 10),
+        s3: parseInt(mStars[3], 10),
+        s4: parseInt(mStars[4], 10),
+        s5: parseInt(mStars[5], 10),
+        ach: parseInt(mAch[1], 10),
+        mistakes: parseInt(mAch[2], 10)
+      };
+
+      const expectedCode = computeReportCode(parsed);
+      if (expectedCode === mCode[1]) {
+        SoundFX.correct(3);
+        resEl.className = 'text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-200';
+        resEl.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i>Отчёт подлинный! Цифры не изменялись (${parsed.name}, ${parsed.cls}).`;
+      } else {
+        SoundFX.wrong();
+        resEl.className = 'text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-400/50 text-rose-200';
+        resEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400 mr-1.5"></i>Код не совпадает! Похоже, текст отчёта редактировали вручную.`;
+      }
+    }
+
+    /* =========================================================================
+       14. РАЗДЕЛ 4: ПРОФИЛЬ, ДОСТИЖЕНИЯ И ЖУРНАЛ ОШИБОК
+       ========================================================================= */
+    function renderProfile() {
+      const rankInfo = getRankInfo(state.xp);
+      document.getElementById('profRankTitle').textContent = rankInfo.current.title;
+      document.getElementById('profNextRankHint').textContent = rankInfo.next
+        ? `До звания «${rankInfo.next.title}»: осталось ${rankInfo.next.minXp - state.xp} XP`
+        : 'Максимальное звание достигнуто! Ты — Легенда 5 класса!';
+
+      const acc = state.totalAttempts > 0 ? Math.round((state.totalSolved / state.totalAttempts) * 100) : 100;
+      document.getElementById('profStatXp').textContent = state.xp;
+      document.getElementById('profStatSolved').textContent = state.totalSolved;
+      document.getElementById('profStatAcc').textContent = `${acc}%`;
+      document.getElementById('profStatCombo').textContent = `x${state.bestCombo}`;
+      document.getElementById('profStatBlitz').textContent = state.bestBlitzScore;
+
+      // Поля имени и класса + предпросмотр отчёта
+      const nameEl = document.getElementById('studentNameInput');
+      const clsEl = document.getElementById('studentClassInput');
+      if (nameEl && nameEl.value !== state.studentName) nameEl.value = state.studentName;
+      if (clsEl && clsEl.value !== state.studentClass) clsEl.value = state.studentClass;
+      updateReportPreview();
+
+      // Достижения
+      document.getElementById('achCountLabel').textContent = state.achievements.length;
+      document.getElementById('achievementsGrid').innerHTML = ACHIEVEMENTS.map(a => {
+        const unlocked = state.achievements.includes(a.id);
+        return `
+          <div class="rounded-2xl p-4 border transition-all ${unlocked ? 'glass-card border-amber-400/40' : 'bg-slate-950/60 border-slate-800 opacity-55'}">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-gradient-to-br ${unlocked ? a.color : 'from-slate-700 to-slate-800'} flex items-center justify-center text-white text-lg shrink-0 shadow">
+                <i class="fa-solid ${a.icon}"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="font-display font-bold text-sm text-white truncate">${a.title}</div>
+                <div class="text-xs text-slate-400 leading-snug mt-0.5">${a.desc}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Журнал ошибок
+      const mContainer = document.getElementById('mistakesListContainer');
+      if (state.mistakes.length === 0) {
+        mContainer.innerHTML = `
+          <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 text-center">
+            <i class="fa-solid fa-circle-check text-emerald-400 text-3xl mb-2"></i>
+            <div class="font-display font-bold text-white">Журнал чист!</div>
+            <div class="text-xs sm:text-sm text-slate-400 mt-0.5">Нерешённых ошибок нет. Так держать!</div>
+          </div>
+        `;
+      } else {
+        mContainer.innerHTML = state.mistakes.map(m => `
+          <div class="bg-slate-900/85 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2.5">
+                <span class="text-xl text-white">${htmlProblem(m.problem)}</span>
+                <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                  Был ответ: ${m.wrongAnswerText}
+                </span>
+              </div>
+              <div class="text-xs text-slate-400">${m.hint}</div>
+            </div>
+            <button onclick="openMistakeModal('${m.id}')" class="btn-game btn-cyan px-4 py-2 rounded-xl text-xs sm:text-sm text-white font-bold shrink-0">
+              <i class="fa-solid fa-wrench mr-1.5"></i>Разобрать и исправить
+            </button>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Модалка исправления ошибки
+    let activeMistakeId = null;
+
+    function openMistakeModal(id) {
+      const item = state.mistakes.find(m => m.id === id);
+      if (!item) return;
+      SoundFX.click();
+      activeMistakeId = id;
+
+      document.getElementById('mistakeModalProblem').innerHTML = htmlProblem(item.problem);
+      document.getElementById('mistakeModalXray').innerHTML = renderXrayDiagramHTML(item.problem);
+      document.getElementById('mistakeModalOldHint').innerHTML = `<i class="fa-solid fa-lightbulb mr-1.5 text-amber-400"></i>${item.hint}`;
+      document.getElementById('mistakeModalFeedback').classList.add('hidden');
+      mountFractionInput('mistakeFractionInputMount', 'fix-in', submitMistakeFix, true);
+      document.getElementById('mistakeModal').classList.remove('hidden');
+    }
+
+    function closeMistakeModal() {
+      document.getElementById('mistakeModal').classList.add('hidden');
+      activeMistakeId = null;
+    }
+
+    function submitMistakeFix() {
+      const item = state.mistakes.find(m => m.id === activeMistakeId);
+      if (!item) return;
+      const input = readFractionInput('fix-in');
+      const diag = diagnoseAnswer(item.problem, input, false);
+      const fb = document.getElementById('mistakeModalFeedback');
+      fb.classList.remove('hidden');
+
+      if (diag.status === 'correct') {
+        SoundFX.victory();
+        ParticleFX.burst(window.innerWidth / 2, window.innerHeight / 2, 26);
+        state.mistakes = state.mistakes.filter(m => m.id !== activeMistakeId);
+        state.mistakesFixed++;
+        unlockAchievement('mistake_fixer');
+        awardXp(25, 'Ошибка разобрана и исправлена!');
+        saveState();
+        closeMistakeModal();
+        renderProfile();
+      } else {
+        SoundFX.wrong();
+        fb.className = 'rounded-xl p-3 text-sm font-bold bg-rose-500/20 border border-rose-400/40 text-rose-200';
+        fb.textContent = diag.message;
+      }
+    }
+
+    // Модалка сброса прогресса
+    function openResetModal() {
+      SoundFX.click();
+      document.getElementById('resetModal').classList.remove('hidden');
+    }
+
+    function closeResetModal() {
+      document.getElementById('resetModal').classList.add('hidden');
+    }
+
+    function confirmResetProgress() {
+      localStorage.removeItem(STORAGE_KEY);
+      state = getDefaultState();
+      saveState();
+      closeResetModal();
+      updateHeaderUI();
+      renderProfile();
+      showToast('Прогресс сброшен', 'Можно начать путь мастера с чистого листа!', 'fa-rotate-left', 'from-slate-500 to-slate-700');
+    }
+
+    /* =========================================================================
+       15. ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      updateHeaderUI();
+      setBlitzDifficulty('basic');
+      setLabMode('guided');
+      switchTab('lab');
+    });
+  </script>
+</body>
+</html>
